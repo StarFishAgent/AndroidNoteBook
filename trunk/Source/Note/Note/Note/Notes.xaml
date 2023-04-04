@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Note.Notes"
+             Title="新的书页">
+    <ContentPage.Content>
+        <StackLayout Spacing="10" Padding="10">
+            <Button x:Name="takePhoto" Text="Take Photo" Clicked="takePhoto_Clicked"/>
+            <Button x:Name="pickPhoto" Text="Pick Photo" Clicked="pickPhoto_Clicked"/>
+            <Button x:Name="pickPhotos" Text="Pick Photos" Clicked="pickPhotos_Clicked"/>
+            <ScrollView>
+                <StackLayout x:Name="ImageList">
+                </StackLayout>
+            </ScrollView>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

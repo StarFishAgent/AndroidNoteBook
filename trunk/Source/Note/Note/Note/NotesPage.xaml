@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<FlyoutPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Note.NotesPage"
+             xmlns:pages="clr-namespace:Note">
+    
+  <FlyoutPage.Flyout>
+        <pages:NotesPageFlyout x:Name="FlyoutPage" />
+    </FlyoutPage.Flyout>
+
+    <FlyoutPage.ToolbarItems>
+        <ToolbarItem x:Name="btnNew" Text="添加" Clicked="btnNew_Clicked"/>
+    </FlyoutPage.ToolbarItems>
+
+    <FlyoutPage.Detail>
+    <NavigationPage>
+      <x:Arguments>
+        <pages:Notes x:Name="MyNoteBook" />
+      </x:Arguments>
+    </NavigationPage>
+  </FlyoutPage.Detail>
+</FlyoutPage>

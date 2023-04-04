@@ -5,6 +5,7 @@ using System.Text;
 using System.Data.SQLite;
 using Xamarin.Essentials;
 using System.IO;
+using static Android.Provider.Telephony.Mms;
 
 namespace Note
 {

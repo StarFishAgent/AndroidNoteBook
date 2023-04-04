@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Android;
-using Android.Content.PM;
 
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;

@@ -31,6 +31,7 @@ namespace Plugin.Media
         : Activity, Android.Media.MediaScannerConnection.IOnScanCompletedListener
     {
         internal const string ExtraPath = "path";
+        internal const string ExtraSaveFolderPath = "savefolder";
         internal const string ExtraLocation = "location";
         internal const string ExtraType = "type";
         internal const string ExtraId = "id";
@@ -41,7 +42,7 @@ namespace Plugin.Media
         internal const string ExtraFront = "android.intent.extras.CAMERA_FACING";
 
         internal static event EventHandler<MediaPickedEventArgs> MediaPicked;
-
+        string savefolder;
         int id;
         int front;
         string title;
@@ -81,6 +82,7 @@ namespace Plugin.Media
             outState.PutBoolean(ExtraTasked, tasked);
             outState.PutInt(ExtraFront, front);
             outState.PutBoolean(ExtraMultiSelect, multiSelect);
+            outState.PutString(ExtraSaveFolderPath, savefolder);
 
             if (path != null)
                 outState.PutString(ExtraPath, path.Path);
@@ -105,12 +107,12 @@ namespace Plugin.Media
 
             title = b.GetString(MediaStore.MediaColumns.Title);
             description = b.GetString(MediaStore.Images.ImageColumns.Description);
-
             tasked = b.GetBoolean(ExtraTasked);
             id = b.GetInt(ExtraId, 0);
             type = b.GetString(ExtraType);
             front = b.GetInt(ExtraFront);
             multiSelect = b.GetBoolean(ExtraMultiSelect);
+            savefolder = b.GetString(ExtraSaveFolderPath);
             if (type == "image/*")
                 isPhoto = true;
 
@@ -168,7 +170,7 @@ namespace Plugin.Media
 
                     if (!ran)
                     {
-                        path = GetOutputMediaFile(this, b.GetString(ExtraPath), title, isPhoto, false);
+                        path = GetOutputMediaFile(this, b.GetString(ExtraPath), title, isPhoto, false, savefolder);
 
                         Touch();
 
@@ -291,7 +293,7 @@ namespace Plugin.Media
             }
         }
 
-        internal static Task<MediaPickedEventArgs> GetMediaFileAsync(Context context, int requestCode, string action, bool isPhoto, ref Uri path, Uri data, bool saveToAlbum)
+        internal static Task<MediaPickedEventArgs> GetMediaFileAsync(Context context, int requestCode, string action, bool isPhoto, ref Uri path, Uri data, bool saveToAlbum,string savefolder = "")
         {
             Task<Tuple<string, string, bool>> pathFuture;
 
@@ -310,7 +312,7 @@ namespace Plugin.Media
                     originalPath = data.ToString();
                     var currentPath = path.Path;
                     var originalFilename = Path.GetFileName(currentPath);
-                    pathFuture = TryMoveFileAsync(context, data, path, isPhoto, false).ContinueWith(t =>
+                    pathFuture = TryMoveFileAsync(context, data, path, isPhoto, false, savefolder).ContinueWith(t =>
                         new Tuple<string, string, bool>(t.Result ? currentPath : null, t.Result ? originalFilename : null, false));
                 }
                 else
@@ -323,7 +325,7 @@ namespace Plugin.Media
             {
                 originalPath = data.ToString();
                 path = data;
-                pathFuture = GetFileForUriAsync(context, path, isPhoto, false);
+                pathFuture = GetFileForUriAsync(context, path, isPhoto, false, savefolder);
             }
             else
                 pathFuture = TaskFromResult<Tuple<string, string, bool>>(null);
@@ -370,7 +372,7 @@ namespace Plugin.Media
                     for (var i = 0; i < clipData.ItemCount; i++)
                     {
                         var item = clipData.GetItemAt(i);
-                        var media = await GetMediaFileAsync(this, requestCode, action, isPhoto, ref path, item.Uri, false);
+                        var media = await GetMediaFileAsync(this, requestCode, action, isPhoto, ref path, item.Uri, false, savefolder);
 
                         // TODO: This can be done better.
                         mediaFiles.AddRange(media.Media);
@@ -401,7 +403,7 @@ namespace Plugin.Media
                 else
                 {
 
-                    var e = await GetMediaFileAsync(this, requestCode, action, isPhoto, ref path, data?.Data, false);
+                    var e = await GetMediaFileAsync(this, requestCode, action, isPhoto, ref path, data?.Data, false, savefolder);
                     Finish();
                     await Task.Delay(50);
                     OnMediaPicked(e);
@@ -432,10 +434,10 @@ namespace Plugin.Media
             }
         }
 
-        static Task<bool> TryMoveFileAsync(Context context, Uri url, Uri path, bool isPhoto, bool saveToAlbum)
+        static Task<bool> TryMoveFileAsync(Context context, Uri url, Uri path, bool isPhoto, bool saveToAlbum, string savefolder)
         {
             var moveTo = GetLocalPath(path);
-            return GetFileForUriAsync(context, url, isPhoto, false).ContinueWith(t =>
+            return GetFileForUriAsync(context, url, isPhoto, false, savefolder).ContinueWith(t =>
             {
                 if (t.Result.Item1 == null)
                     return false;
@@ -510,7 +512,7 @@ namespace Plugin.Media
         /// <param name="isPhoto"></param>
         /// <param name="saveToAlbum"></param>
         /// <returns></returns>
-        public static Uri GetOutputMediaFile(Context context, string subdir, string name, bool isPhoto, bool saveToAlbum)
+        public static Uri GetOutputMediaFile(Context context, string subdir, string name, bool isPhoto, bool saveToAlbum,string savefolder = "")
         {
             subdir = subdir ?? string.Empty;
             Uri uri;
@@ -552,7 +554,8 @@ namespace Plugin.Media
                 var mediaType = (isPhoto) ? Environment.DirectoryPictures : Environment.DirectoryMovies;
                 var directory = context.GetExternalFilesDir(mediaType);
 
-                using (var mediaStorageDir = new Java.IO.File(directory, subdir))
+                var mediaStorageDir = new Java.IO.File(directory, subdir);
+                using (mediaStorageDir = new Java.IO.File(mediaStorageDir, savefolder))
                 {
                     mediaStorageDir.Mkdirs();
 
@@ -576,8 +579,9 @@ namespace Plugin.Media
             return uri;
         }
 
-        internal static Task<Tuple<string, string, bool>> GetFileForUriAsync(Context context, Uri uri, bool isPhoto, bool saveToAlbum)
+        internal static Task<Tuple<string, string, bool>> GetFileForUriAsync(Context context, Uri uri, bool isPhoto, bool saveToAlbum,string savefolder)
         {
+
             var tcs = new TaskCompletionSource<Tuple<string, string, bool>>();
 
             if (uri.Scheme == "file")
@@ -624,8 +628,7 @@ namespace Plugin.Media
                                     System.Diagnostics.Debug.WriteLine("Unable to get file path name, using new unique " + ex);
                                 }
 
-
-                                var outputPath = GetOutputMediaFile(context, "temp", fileName, isPhoto, false);
+                                var outputPath = GetOutputMediaFile(context, savefolder, fileName, isPhoto, false);
 
                                 try
                                 {

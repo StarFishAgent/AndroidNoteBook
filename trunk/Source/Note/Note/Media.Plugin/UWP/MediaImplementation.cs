@@ -18,6 +18,7 @@ namespace Plugin.Media
     /// </summary>
     public class MediaImplementation : IMedia
     {
+        #region
         private static readonly IEnumerable<string> SupportedVideoFileTypes = new List<string> { ".mp4", ".wmv", ".avi" };
         private static readonly IEnumerable<string> SupportedImageFileTypes = new List<string> { ".jpeg", ".jpg", ".png", ".gif", ".bmp" };
         /// <summary>
@@ -88,37 +89,6 @@ namespace Plugin.Media
         /// <inheritdoc/>
         public bool IsPickVideoSupported => true;
 
-        /// <summary>
-        /// Take a photo async with specified options
-        /// </summary>
-        /// <param name="options">Camera Media Options</param>
-        /// <param name="token">Cancellation token (currently ignored)</param>
-        /// <returns>Media file of photo or null if canceled</returns>
-        public async Task<MediaFile> TakePhotoAsync(StoreCameraMediaOptions options, CancellationToken token = default(CancellationToken))
-        {
-            if (!initialized)
-                await Initialize();
-
-            if (!IsCameraAvailable)
-                throw new NotSupportedException();
-
-            options.VerifyOptions();
-
-            var capture = new CameraCaptureUI();
-            capture.PhotoSettings.Format = CameraCaptureUIPhotoFormat.Jpeg;
-            capture.PhotoSettings.MaxResolution = GetMaxResolution(options?.PhotoSize ?? PhotoSize.Full, options?.CustomPhotoSize ?? 100);
-            //we can only disable cropping if resolution is set to max
-            if (capture.PhotoSettings.MaxResolution == CameraCaptureUIMaxPhotoResolution.HighestAvailable)
-                capture.PhotoSettings.AllowCropping = options?.AllowCropping ?? true;
-
-            var result = await capture.CaptureFileAsync(CameraCaptureUIMode.Photo);
-            if (result == null)
-                return null;
-
-            return await MediaFileFromFile(result);
-        }
-
-
         CameraCaptureUIMaxPhotoResolution GetMaxResolution(PhotoSize photoSize, int customPhotoSize)
         {
             if (photoSize == PhotoSize.Custom)
@@ -150,6 +120,65 @@ namespace Plugin.Media
             }
 
             return CameraCaptureUIMaxPhotoResolution.HighestAvailable;
+        }
+
+        public async Task<MediaFile> MediaFileFromFile(StorageFile file)
+        {
+            var aPath = file.Path;
+            var path = file.Path;
+            StorageFile copy = null;
+            //copy local
+            try
+            {
+                var fileNameNoEx = Path.GetFileNameWithoutExtension(aPath);
+                copy = await file.CopyAsync(ApplicationData.Current.LocalCacheFolder,
+                    fileNameNoEx + file.FileType, NameCollisionOption.GenerateUniqueName);
+
+                path = copy.Path;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("unable to save to app directory:" + ex);
+            }
+
+            return new MediaFile(path, () =>
+            {
+                if (copy != null)
+                    return copy.OpenStreamForReadAsync().Result;
+
+                return file.OpenStreamForReadAsync().Result;
+            }, albumPath: aPath);
+        }
+        #endregion
+
+        /// <summary>
+        /// Take a photo async with specified options
+        /// </summary>
+        /// <param name="options">Camera Media Options</param>
+        /// <param name="token">Cancellation token (currently ignored)</param>
+        /// <returns>Media file of photo or null if canceled</returns>
+        public async Task<MediaFile> TakePhotoAsync(StoreCameraMediaOptions options, CancellationToken token = default(CancellationToken))
+        {
+            if (!initialized)
+                await Initialize();
+
+            if (!IsCameraAvailable)
+                throw new NotSupportedException();
+
+            options.VerifyOptions();
+
+            var capture = new CameraCaptureUI();
+            capture.PhotoSettings.Format = CameraCaptureUIPhotoFormat.Jpeg;
+            capture.PhotoSettings.MaxResolution = GetMaxResolution(options?.PhotoSize ?? PhotoSize.Full, options?.CustomPhotoSize ?? 100);
+            //we can only disable cropping if resolution is set to max
+            if (capture.PhotoSettings.MaxResolution == CameraCaptureUIMaxPhotoResolution.HighestAvailable)
+                capture.PhotoSettings.AllowCropping = options?.AllowCropping ?? true;
+
+            var result = await capture.CaptureFileAsync(CameraCaptureUIMode.Photo);
+            if (result == null)
+                return null;
+
+            return await MediaFileFromFile(result);
         }
 
         /// <summary>
@@ -218,34 +247,6 @@ namespace Plugin.Media
             }
 
             return ret;
-        }
-
-        private async Task<MediaFile> MediaFileFromFile(StorageFile file)
-        {
-            var aPath = file.Path;
-            var path = file.Path;
-            StorageFile copy = null;
-            //copy local
-            try
-            {
-                var fileNameNoEx = Path.GetFileNameWithoutExtension(aPath);
-                copy = await file.CopyAsync(ApplicationData.Current.LocalCacheFolder,
-                    fileNameNoEx + file.FileType, NameCollisionOption.GenerateUniqueName);
-
-                path = copy.Path;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("unable to save to app directory:" + ex);
-            }
-
-            return new MediaFile(path, () =>
-            {
-                if (copy != null)
-                    return copy.OpenStreamForReadAsync().Result;
-
-                return file.OpenStreamForReadAsync().Result;
-            }, albumPath: aPath);
         }
 
         /// <summary>
@@ -341,12 +342,13 @@ namespace Plugin.Media
             }, albumPath: aPath);
         }
 
-        private readonly HashSet<string> devices = new HashSet<string>();
-        private readonly DeviceWatcher watcher;
-        private bool isCameraAvailable;
+        #region
+        public readonly HashSet<string> devices = new HashSet<string>();
+        public readonly DeviceWatcher watcher;
+        public bool isCameraAvailable;
 
 
-        private CameraCaptureUIMaxVideoResolution GetResolutionFromQuality(VideoQuality quality)
+        public CameraCaptureUIMaxVideoResolution GetResolutionFromQuality(VideoQuality quality)
         {
             switch (quality)
             {
@@ -361,7 +363,7 @@ namespace Plugin.Media
             }
         }
 
-        private void OnDeviceUpdated(DeviceWatcher sender, DeviceInformationUpdate update)
+        public void OnDeviceUpdated(DeviceWatcher sender, DeviceInformationUpdate update)
         {
             if (!update.Properties.TryGetValue("System.Devices.InterfaceEnabled", out var value))
                 return;
@@ -377,7 +379,7 @@ namespace Plugin.Media
             }
         }
 
-        private void OnDeviceRemoved(DeviceWatcher sender, DeviceInformationUpdate update)
+        public void OnDeviceRemoved(DeviceWatcher sender, DeviceInformationUpdate update)
         {
             lock (devices)
             {
@@ -387,7 +389,7 @@ namespace Plugin.Media
             }
         }
 
-        private void OnDeviceAdded(DeviceWatcher sender, DeviceInformation device)
+        public void OnDeviceAdded(DeviceWatcher sender, DeviceInformation device)
         {
             if (!device.IsEnabled)
                 return;
@@ -398,5 +400,6 @@ namespace Plugin.Media
                 isCameraAvailable = true;
             }
         }
+        #endregion
     }
 }

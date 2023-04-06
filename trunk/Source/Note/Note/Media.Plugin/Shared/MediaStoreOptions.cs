@@ -149,6 +149,13 @@ namespace Plugin.Media.Abstractions
             set { saveMetaData = value; }
         }
 
+        string _savefolder = "";
+        public string SaveFolder
+        {
+            get { return _savefolder; }
+            set { _savefolder = value; }
+        }
+
         /// <summary>
         /// Specifies the media picker's modal presentation style.
         /// Only applies to iOS.

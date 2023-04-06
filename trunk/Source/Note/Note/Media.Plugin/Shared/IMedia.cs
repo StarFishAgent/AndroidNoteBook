@@ -10,6 +10,7 @@ namespace Plugin.Media.Abstractions
     /// </summary>
     public interface IMedia
     {
+        #region 参数
         /// <summary>
         /// Initialize all camera components
         /// </summary>
@@ -37,7 +38,8 @@ namespace Plugin.Media.Abstractions
         /// Gets if the ability to pick a video is supported on the device
         /// </summary>
         bool IsPickVideoSupported { get; }
-
+        #endregion
+        #region 图片
         /// <summary>
         /// Picks a photo from the default gallery
         /// </summary>
@@ -57,7 +59,8 @@ namespace Plugin.Media.Abstractions
         /// <param name="token">Cancellation token</param>
         /// <returns>Media file of photo or null if canceled</returns>
         Task<MediaFile> TakePhotoAsync(StoreCameraMediaOptions options, CancellationToken token = default(CancellationToken));
-
+        #endregion
+        #region 视频
         /// <summary>
         /// Picks a video from the default gallery
         /// </summary>
@@ -72,6 +75,6 @@ namespace Plugin.Media.Abstractions
         /// <param name="token">Cancellation token</param>
         /// <returns>Media file of new video or null if canceled</returns>
         Task<MediaFile> TakeVideoAsync(StoreVideoOptions options, CancellationToken token = default(CancellationToken));
-
+        #endregion
     }
 }

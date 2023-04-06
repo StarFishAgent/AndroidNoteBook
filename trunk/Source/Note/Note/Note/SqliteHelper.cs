@@ -38,15 +38,8 @@ namespace Note
             }
         }
         public static async void CreateSqliteDatabase() {
-            if (File.Exists(dbUrl))//如果文件存在就返回True，则返回False
-            {//存在
-                return;
-            }
-            else {//不存在
-                var conn = new SQLiteConnection(path);
-                //var conn = new SQLite.SQLiteConnection(dbUrl);
 
-            }
+
 
         }
     }

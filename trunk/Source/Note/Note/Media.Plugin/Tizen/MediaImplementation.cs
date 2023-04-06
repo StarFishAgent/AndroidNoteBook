@@ -13,6 +13,7 @@ namespace Plugin.Media
 {
     public class MediaImplementation : IMedia
     {
+        #region
         internal const string LOG_TAG = "Plugin.Media";
         internal const string OPERATION_CREATE_CONTENT = "http://tizen.org/appcontrol/operation/create_content";
         internal const string OPERATION_PICK = "http://tizen.org/appcontrol/operation/pick";
@@ -68,7 +69,7 @@ namespace Plugin.Media
 
         /// <inheritdoc/>
         public Task<bool> Initialize() => Task.FromResult(true);
-
+        #endregion
         /// <summary>
         /// Take a photo async with specified options
         /// </summary>
@@ -162,14 +163,14 @@ namespace Plugin.Media
             return completionSource.Task;
         }
 
-
+        #region 
         /// <summary>
         /// Check that it is an operation of usable Appcontrol.
         /// </summary>
         /// <param name="operation">Appcontrol operation</param>
         /// <param name="mime">Appcontrol mime</param>
         /// <returns>Allow operation of appcontrol or not</returns>
-        private bool CheckSupportOperation(string operation, string mime)
+        public bool CheckSupportOperation(string operation, string mime)
         {
             var appControl = new AppControl();
             appControl.Operation = operation;
@@ -186,7 +187,7 @@ namespace Plugin.Media
         /// <param name="launchRequest">Appcontrol object sent to run camera</param>
         /// <param name="replyRequest">The appcontrol object received as a result of running the camera</param>
         /// <param name="result">Success of Appcontrol Request</param>
-        private void AppControlReplyReceivedCallback(AppControl launchRequest, AppControl replyRequest, AppControlReplyResult result)
+        public void AppControlReplyReceivedCallback(AppControl launchRequest, AppControl replyRequest, AppControlReplyResult result)
         {
             var tcs = Interlocked.Exchange(ref completionSource, null);
             if (result == AppControlReplyResult.Succeeded)
@@ -209,7 +210,7 @@ namespace Plugin.Media
         /// - options.CompressionQuality
         /// </summary>
         /// <param name="options">StoreCameraMediaOptions from Media.Plugin</param>
-        private void SetOptions(StoreCameraMediaOptions options, ref AppControl appControl)
+        public void SetOptions(StoreCameraMediaOptions options, ref AppControl appControl)
         {
             if (appControl == null)
                 throw new ObjectDisposedException("AppControl");
@@ -241,7 +242,7 @@ namespace Plugin.Media
         /// - options.DesiredLength
         /// </summary>
         /// <param name="options">StoreVideoOptions from Media.Plugin</param>
-        private void SetOptions(StoreVideoOptions options, ref AppControl appControl)
+        public void SetOptions(StoreVideoOptions options, ref AppControl appControl)
         {
             if (appControl == null)
                 throw new ObjectDisposedException("AppControl");
@@ -275,7 +276,7 @@ namespace Plugin.Media
         /// Setting Camera Options for Pick Photo
         /// </summary>
         /// <param name="options">PickMediaOptions from Media.Plugin</param>
-        private void SetOptions(PickMediaOptions options, ref AppControl appControl)
+        public void SetOptions(PickMediaOptions options, ref AppControl appControl)
         {
             if (appControl == null)
                 throw new ObjectDisposedException("AppControl");
@@ -290,5 +291,6 @@ namespace Plugin.Media
 
             return new List<MediaFile> { result };
         }
+        #endregion
     }
 }

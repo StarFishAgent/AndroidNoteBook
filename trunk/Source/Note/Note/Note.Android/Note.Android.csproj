@@ -101,10 +101,6 @@
       <Project>{BB4A9A3D-61BA-42E3-8190-C2BF9DA52CD4}</Project>
       <Name>Note</Name>
     </ProjectReference>
-    <ProjectReference Include="D:\git\Project\phone\MediaPlugin\src\Media.Plugin\Media.Plugin.csproj">
-      <Project>{4982045e-6006-42eb-98a6-db5054ccb709}</Project>
-      <Name>Media.Plugin</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\renwu.png" />

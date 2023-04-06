@@ -28,6 +28,7 @@ namespace Plugin.Media
     [Android.Runtime.Preserve(AllMembers = true)]
     public class MediaImplementation : IMedia
     {
+        #region 
         const string pixelXDimens = "PixelXDimension";
         const string pixelYDimens = "PixelYDimension";
 
@@ -83,6 +84,7 @@ namespace Plugin.Media
 
             return true;
         }
+        #endregion
 
         /// <summary>
         /// Picks a photo from the default gallery
@@ -90,7 +92,7 @@ namespace Plugin.Media
         /// <returns>Media file or null if canceled</returns>
         public async Task<MediaFile> PickPhotoAsync(PickMediaOptions options = null, CancellationToken token = default(CancellationToken))
         {
-            var media = await TakeMediaAsync("image/*", Intent.ActionPick, null, token);
+            var media = await TakeMediaAsync("image/*", Intent.ActionPick, null, token, options);
 
             if (options == null)
                 options = new PickMediaOptions();
@@ -113,7 +115,7 @@ namespace Plugin.Media
 
         public async Task<List<MediaFile>> PickPhotosAsync(PickMediaOptions options = null, MultiPickerOptions pickerOptions = null, CancellationToken token = default(CancellationToken))
         {
-            var medias = await TakeMediasAsync("image/*", Intent.ActionPick, new StorePickerMediaOptions { MultiPicker = true }, token);
+            var medias = await TakeMediasAsync("image/*", Intent.ActionPick, new StorePickerMediaOptions { MultiPicker = true }, token, options);
 
             if (medias == null)
                 return null;
@@ -139,35 +141,6 @@ namespace Plugin.Media
 
             return medias;
         }
-
-        async Task FixOrientationAndResize(PickMediaOptions options, MediaFile media)
-        {
-            var originalMetadata = new ExifInterface(media.Path);
-
-            if (options.RotateImage)
-            {
-                await FixOrientationAndResizeAsync(media.Path, options, originalMetadata);
-            }
-            else
-            {
-                await ResizeAsync(media.Path, options, originalMetadata);
-            }
-
-            if (options.SaveMetaData && IsValidExif(originalMetadata))
-            {
-                try
-                {
-                    originalMetadata?.SaveAttributes();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Unable to save exif {ex}");
-                }
-            }
-
-            originalMetadata?.Dispose();
-        }
-
         /// <summary>
         /// Take a photo async with specified options
         /// </summary>
@@ -258,6 +231,35 @@ namespace Plugin.Media
             return media;
         }
 
+        #region
+        async Task FixOrientationAndResize(PickMediaOptions options, MediaFile media)
+        {
+            var originalMetadata = new ExifInterface(media.Path);
+
+            if (options.RotateImage)
+            {
+                await FixOrientationAndResizeAsync(media.Path, options, originalMetadata);
+            }
+            else
+            {
+                await ResizeAsync(media.Path, options, originalMetadata);
+            }
+
+            if (options.SaveMetaData && IsValidExif(originalMetadata))
+            {
+                try
+                {
+                    originalMetadata?.SaveAttributes();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Unable to save exif {ex}");
+                }
+            }
+
+            originalMetadata?.Dispose();
+        }
+
         /// <summary>
         /// Picks a video from the default gallery
         /// </summary>
@@ -293,8 +295,6 @@ namespace Plugin.Media
 
         internal static TaskCompletionSource<MediaFile> CompletionSource;
         internal static TaskCompletionSource<List<MediaFile>> CompletionSourceMulti;
-
-
 
         async Task<bool> RequestCameraPermissions()
         {
@@ -341,8 +341,6 @@ namespace Plugin.Media
 
             return true;
         }
-
-
         IList<string> requestedPermissions;
         bool HasPermissionInManifest(string permission)
         {
@@ -389,8 +387,6 @@ namespace Plugin.Media
             }
             return false;
         }
-
-
         const string illegalCharacters = "[|\\?*<\":>/']";
         void VerifyOptions(StoreMediaOptions options)
         {
@@ -407,17 +403,19 @@ namespace Plugin.Media
                 options.Directory = Regex.Replace(options.Directory, illegalCharacters, string.Empty).Replace(@"\", string.Empty);
         }
 
-        Intent CreateMediaIntent(int id, string type, string action, StoreMediaOptions options, bool tasked = true)
+        Intent CreateMediaIntent(int id, string type, string action, StoreMediaOptions options, string savefolder, bool tasked = true)
         {
+
             var pickerIntent = new Intent(this.context, typeof(MediaPickerActivity));
             pickerIntent.PutExtra(MediaPickerActivity.ExtraId, id);
             pickerIntent.PutExtra(MediaPickerActivity.ExtraType, type);
             pickerIntent.PutExtra(MediaPickerActivity.ExtraAction, action);
             pickerIntent.PutExtra(MediaPickerActivity.ExtraTasked, tasked);
+            pickerIntent.PutExtra(MediaPickerActivity.ExtraSaveFolderPath, savefolder);
 
             if (options != null)
             {
-                pickerIntent.PutExtra(MediaPickerActivity.ExtraPath, options.Directory);
+                //pickerIntent.PutExtra(MediaPickerActivity.ExtraPath, options.Directory);
                 pickerIntent.PutExtra(MediaStore.Images.ImageColumns.Title, options.Name);
 
                 var pickerOptions = (options as StorePickerMediaOptions);
@@ -466,8 +464,17 @@ namespace Plugin.Media
             return id;
         }
 
-        Task<MediaFile> TakeMediaAsync(string type, string action, StoreMediaOptions options, CancellationToken token = default(CancellationToken))
+        Task<MediaFile> TakeMediaAsync(string type, string action, StoreMediaOptions options, CancellationToken token = default(CancellationToken), PickMediaOptions pickoptions = null)
         {
+            var savefolder = "";
+            if (pickoptions == null)
+            {
+                savefolder = options.Directory;
+            }
+            else
+            {
+                savefolder = pickoptions.SaveFolder;
+            }
             var id = GetRequestId();
 
             if (token.IsCancellationRequested)
@@ -477,7 +484,7 @@ namespace Plugin.Media
             if (Interlocked.CompareExchange(ref CompletionSource, ntcs, null) != null)
                 throw new InvalidOperationException("Only one operation can be active at a time");
 
-            context.StartActivity(CreateMediaIntent(id, type, action, options));
+            context.StartActivity(CreateMediaIntent(id, type, action, options, savefolder));
 
             void handler(object s, MediaPickedEventArgs e)
             {
@@ -513,7 +520,7 @@ namespace Plugin.Media
             return CompletionSource.Task;
         }
 
-        Task<List<MediaFile>> TakeMediasAsync(string type, string action, StoreMediaOptions options, CancellationToken token = default(CancellationToken))
+        Task<List<MediaFile>> TakeMediasAsync(string type, string action, StoreMediaOptions options, CancellationToken token = default(CancellationToken), PickMediaOptions pickoptions = null)
         {
             var id = GetRequestId();
 
@@ -524,7 +531,7 @@ namespace Plugin.Media
             if (Interlocked.CompareExchange(ref CompletionSourceMulti, ntcs, null) != null)
                 throw new InvalidOperationException("Only one operation can be active at a time");
 
-            context.StartActivity(CreateMediaIntent(id, type, action, options));
+            context.StartActivity(CreateMediaIntent(id, type, action, options, pickoptions.SaveFolder));
 
             void handler(object s, MediaPickedEventArgs e)
             {
@@ -966,8 +973,6 @@ namespace Plugin.Media
 #endif
             }
         }
-
+        #endregion
     }
-
-
 }

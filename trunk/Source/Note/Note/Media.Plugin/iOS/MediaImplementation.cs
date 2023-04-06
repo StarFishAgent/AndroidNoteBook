@@ -25,11 +25,11 @@ namespace Plugin.Media
     /// </summary>
     public class MediaImplementation : IMedia
     {
+        #region ²ÎÊý
         /// <summary>
         /// Color of the status bar
         /// </summary>
         public static UIStatusBarStyle StatusBarStyle { get; set; }
-
 
         ///<inheritdoc/>
         public Task<bool> Initialize() => Task.FromResult(true);
@@ -68,7 +68,7 @@ namespace Plugin.Media
 
         /// <inheritdoc/>
         public bool IsPickVideoSupported { get; }
-
+        #endregion
 
         /// <summary>
         /// Picks a photo from the default gallery
@@ -215,7 +215,7 @@ namespace Plugin.Media
 
             return await GetMediaAsync(UIImagePickerControllerSourceType.Camera, TypeMovie, options, token);
         }
-
+        #region 
         UIPopoverController popover;
         UIImagePickerControllerDelegate pickerDelegate;
         /// <summary>
@@ -622,5 +622,6 @@ namespace Plugin.Media
 
             }
         }
+        #endregion
     }
 }

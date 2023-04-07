@@ -75,7 +75,6 @@
 
 
   <ItemGroup>
-    <None Include="..\..\nuget\readme.txt" PackagePath="readme.txt" Pack="true" />
     <Compile Include="**\Shared\*.cs" />
   </ItemGroup>
 

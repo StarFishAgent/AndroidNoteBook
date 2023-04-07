@@ -97,6 +97,10 @@
     <AndroidResource Include="Resources\drawable\icon_feed.png" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Media.Plugin\Media.Plugin.csproj">
+      <Project>{3705d6de-9987-4ac5-ac71-0bb095e3420f}</Project>
+      <Name>Media.Plugin</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Note\Note.csproj">
       <Project>{BB4A9A3D-61BA-42E3-8190-C2BF9DA52CD4}</Project>
       <Name>Note</Name>

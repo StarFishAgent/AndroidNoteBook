@@ -156,6 +156,20 @@ namespace Plugin.Media.Abstractions
             set { _savefolder = value; }
         }
 
+        bool _iscreatedb = false;
+        public bool IsCreateDB
+        {
+            get { return _iscreatedb; }
+            set { _iscreatedb = value; }
+        }
+
+        bool _iscreatefolder = false;
+        public bool IsCreateFolder
+        {
+            get { return _iscreatefolder; }
+            set { _iscreatefolder = value; }
+        }
+
         /// <summary>
         /// Specifies the media picker's modal presentation style.
         /// Only applies to iOS.

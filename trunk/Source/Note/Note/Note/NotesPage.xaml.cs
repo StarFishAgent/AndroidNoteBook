@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Plugin.Media;
 using Plugin.Media.Abstractions;
 
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -37,14 +38,11 @@ namespace Note
         }
 
         private async void btnNew_Clicked(object sender, EventArgs e) {
-            //string pagetitle = await DisplayPromptAsync("新建标签", "请输入标签的名称");
-            //if (pagetitle == "") {
-            //    await DisplayAlert("提示", "标签的名称不能为空", "OK");
-            //}
-            //MyNoteBook.Save();
-            //MyNoteBook.Title = pagetitle;
-            
-            //SqliteHelper.CreateSqliteDatabase();
+            var picked = await CrossMedia.Current.PickPhotoAsync(new PickMediaOptions
+            {
+                IsCreateDB = true,
+                SaveFolder = FileSystem.AppDataDirectory
+            });
         }
     }
 }

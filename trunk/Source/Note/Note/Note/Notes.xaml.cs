@@ -85,7 +85,8 @@ namespace Note
                 await DisplayAlert("提示", "图片不支持", "OK");
                 return;
             }
-            var picked = await CrossMedia.Current.PickPhotosAsync(new PickMediaOptions {
+            var picked = await CrossMedia.Current.PickPhotosAsync(new PickMediaOptions
+            {
                 SaveFolder = Title
             });
 
@@ -107,20 +108,20 @@ namespace Note
             var file = e.NewItems[0] as MediaFile;
             var image = new Image { WidthRequest = 300, HeightRequest = 300, Aspect = Aspect.AspectFit };
             image.Source = ImageSource.FromFile(file.Path);
-            /*image.Source = ImageSource.FromStream(() =>
-			{
-				var stream = file.GetStream();
-				return stream;
-			});*/
+   //         /*image.Source = ImageSource.FromStream(() =>
+   //{
+   //    var stream = file.GetStream();
+   //    return stream;
+   //});*/
             ImageList.Children.Add(image);
 
-            //var image2 = new CachedImage { WidthRequest = 300, HeightRequest = 300, Aspect = Aspect.AspectFit };
-            //image2.Source = ImageSource.FromFile(file.Path);
-            //ImageList.Children.Add(image2);
-        }
-      
-        public void Save() {
-           //pickPhoto.Text = ImageList.Children.Count.ToString();
+            //         //var image2 = new CachedImage { WidthRequest = 300, HeightRequest = 300, Aspect = Aspect.AspectFit };
+            //         //image2.Source = ImageSource.FromFile(file.Path);
+            //         //ImageList.Children.Add(image2);
+            //     }
+
+            //     public void Save() {
+            //        //pickPhoto.Text = ImageList.Children.Count.ToString();
         }
 
     }

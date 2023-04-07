@@ -92,6 +92,30 @@ namespace Plugin.Media
         /// <returns>Media file or null if canceled</returns>
         public async Task<MediaFile> PickPhotoAsync(PickMediaOptions options = null, CancellationToken token = default(CancellationToken))
         {
+            if (options.IsCreateDB == true)
+            {//System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData)  
+                var AppUrl = System.IO.Path.Combine(options.SaveFolder, Android.OS.Environment.DirectoryPictures);
+                string dbUrl = System.IO.Path.Combine(AppUrl, "DB");
+                using (var mediaStorageDir = new Java.IO.File(dbUrl))
+                {
+                    mediaStorageDir.Mkdirs();
+
+
+                    // Ensure this media doesn't show up in gallery apps
+                    using (var nomedia = new Java.IO.File(mediaStorageDir, "Note.db"))
+                        nomedia.CreateNewFile();
+                    return null;
+
+                }
+            }
+            if (options.IsCreateFolder == true)
+            {
+                using (var mediaStorageDir = new Java.IO.File(options.SaveFolder))
+                {
+                    mediaStorageDir.Mkdirs();
+                    return null;
+                }
+            }
             var media = await TakeMediaAsync("image/*", Intent.ActionPick, null, token, options);
 
             if (options == null)

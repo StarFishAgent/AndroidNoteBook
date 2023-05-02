@@ -33,13 +33,14 @@ namespace Note
             
             public NotesPageFlyoutViewModel()
             {
+                var dt = SqliteHelper.ExecuteQuery("select id,name from NoteInfo where IsShow='True' order by id asc");
                 MenuItems = new ObservableCollection<NotesPageFlyoutMenuItem>(new[]
                 {
-                    new NotesPageFlyoutMenuItem { Id = 0, Title = "Page 1" },
-                    new NotesPageFlyoutMenuItem { Id = 1, Title = "Page 2" },
-                    new NotesPageFlyoutMenuItem { Id = 2, Title = "Page 3" },
-                    new NotesPageFlyoutMenuItem { Id = 3, Title = "Page 4" },
-                    new NotesPageFlyoutMenuItem { Id = 4, Title = "Page 5" },
+                    //new NotesPageFlyoutMenuItem { Id = 0, Title = "Page 1" },
+                    //new NotesPageFlyoutMenuItem { Id = 1, Title = "Page 2" },
+                    //new NotesPageFlyoutMenuItem { Id = 2, Title = "Page 3" },
+                    //new NotesPageFlyoutMenuItem { Id = 3, Title = "Page 4" }，
+                    new NotesPageFlyoutMenuItem { Id = 4, Title = "Page 5" }
                 });
             }
             

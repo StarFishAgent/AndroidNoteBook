@@ -8,6 +8,7 @@ using System.IO;
 using Xamarin.Forms;
 using System.Linq;
 using System.Reflection;
+using SQLiteNetExtensions.Attributes;
 
 namespace Note
 {
@@ -17,8 +18,9 @@ namespace Note
         static string StrConn = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Note.db3");
         public static void CreateDb()
         {
-            var conn = new SQLiteConnection(StrConn);
-            conn.CreateTables<NoteInfo, PicInfo, TextInfo>();
+            var conn = new SQLiteConnection(StrConn, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.FullMutex, true);
+            conn.CreateTables<NoteInfo, PicInfo, TextInfo>(CreateFlags.AllImplicit);
+            conn.Execute("PRAGMA foreign_keys = ON;");
         }
         public static (DataTable,string) ExecuteQuery(this string StrSql)
         {
@@ -38,13 +40,36 @@ namespace Note
             return (dt, ErrMsg);
         }
         
-        public static (string,string) ExecuteNonQuery(object Params)
+        public static (string,string) ExecuteNonQueryDel()
         {
             var ErrMsg = "";
             var IsSuccess = "";
             try
             {
+                
                 var conn = new SQLiteConnection(StrConn);
+                conn.Query<NoteInfo>($"delete from noteinfo");
+                //var list = new List<object>();
+                //list.Add(Params);
+                //var Result = conn.InsertAll(list);
+
+                //IsSuccess = Result > 0 ? "插入成功" : "插入失败";
+            }
+            catch (Exception ex)
+            {
+                ErrMsg = ex.Message.ToString();
+            }
+            return (IsSuccess, ErrMsg);
+        }
+        public static (string, string) ExecuteNonQuery(object Params)
+        {
+            var ErrMsg = "";
+            var IsSuccess = "";
+            try
+            {
+
+                var conn = new SQLiteConnection(StrConn);
+
                 var list = new List<object>();
                 list.Add(Params);
                 var Result = conn.InsertAll(list);
@@ -182,23 +207,29 @@ namespace Note
         #region 数据库模型
         public class NoteInfo
         {
-            [PrimaryKey]
+            //PrimaryKey 主键
+            //AutoIncrement自增长
+            [PrimaryKey,AutoIncrement]
             public int id { get; set; }
             public string name { get; set; }
+            public bool IsShow { get; set; }=true;
         }
         public class PicInfo
         {
             [PrimaryKey]
-            public string id { get; set; }
-            public string Noteid { get; set; }
+            public int id { get; set; }
             public string PicPath { get; set; }
+            //ForeignKey外键 typeof(NoteInfo)来自NoteInfo表
+            [ForeignKey(typeof(NoteInfo))]
+            public int Noteid { get; set; }
         }
         public class TextInfo
         {
             [PrimaryKey]
-            public string id { get; set; }
-            public string Noteid { get; set; }
+            public int id { get; set; }
             public string TextDetil { get; set; }
+            [ForeignKey(typeof(NoteInfo))]
+            public int Noteid { get; set; }
         }
         #endregion
     }

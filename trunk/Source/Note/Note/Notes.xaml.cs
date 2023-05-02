@@ -128,5 +128,32 @@ namespace Note
             image.Source = ImageSource.FromFile(file.Path);
             ImageList.Children.Add(image);
         }
+        /// <summary>
+        /// 清除所有图片
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnClear_Clicked(object sender, EventArgs e)
+        {
+
+        }
+        /// <summary>
+        /// 重命名标题
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnReTitle_Clicked(object sender, EventArgs e)
+        {
+
+        }
+        /// <summary>
+        /// 删除最后一张图片
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnClearLast_Clicked(object sender, EventArgs e)
+        {
+
+        }
     }
 }

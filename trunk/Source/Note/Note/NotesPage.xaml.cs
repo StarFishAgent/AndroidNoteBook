@@ -11,6 +11,7 @@ using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
+
 namespace Note
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
@@ -38,13 +39,10 @@ namespace Note
         }
 
         private async void btnNew_Clicked(object sender, EventArgs e) {
-            //var picked = await CrossMedia.Current.PickPhotoAsync(new PickMediaOptions
-            //{
-            //    IsCreateDB = true,
-            //    SaveFolder = FileSystem.AppDataDirectory
-            //});
-            //SqliteHelper.CreateDb();
-           var dt =  SqliteHelper.ExecuteQuery("select * from noteinfo");
+            SqliteHelper.CreateDb();
+            SqliteHelper.ExecuteNonQuery(new SqliteHelper.NoteInfo() { name = "hello" });
+           var dt =  SqliteHelper.ExecuteQuery("select * from noteinfo order by id asc");
+           var i =  dt.Item1.Rows.Count;
         }
     }
 }

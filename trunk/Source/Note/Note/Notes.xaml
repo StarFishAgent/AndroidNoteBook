@@ -5,9 +5,16 @@
              Title="新的书页">
     <ContentPage.Content>
         <StackLayout Spacing="10" Padding="10">
-            <Button x:Name="takePhoto" Text="Take Photo" Clicked="takePhoto_Clicked"/>
-            <Button x:Name="pickPhoto" Text="Pick Photo" Clicked="pickPhoto_Clicked"/>
-            <Button x:Name="pickPhotos" Text="Pick Photos" Clicked="pickPhotos_Clicked"/>
+            <StackLayout Orientation="Horizontal" Spacing="30" Padding="10">
+                <Button x:Name="btnTakePhoto" Text="拍照" Clicked="takePhoto_Clicked"/>
+                <Button x:Name="btnPickPhoto" Text="选择图片" Clicked="pickPhoto_Clicked"/>
+                <Button x:Name="btnPickPhotos" Text="批量选择图片" Clicked="pickPhotos_Clicked"/>
+            </StackLayout>
+            <StackLayout Orientation="Horizontal" Spacing="30" Padding="10">
+                <Button x:Name="btnClear" Text="清除全部" Clicked="btnClear_Clicked"/>
+                <Button x:Name="btnReTitle" Text="重命名标题" Clicked="btnReTitle_Clicked"/>
+                <Button x:Name="btnClearLast" Text="删除最后一张" Clicked="btnClearLast_Clicked"/>
+            </StackLayout>
             <ScrollView>
                 <StackLayout x:Name="ImageList">
                 </StackLayout>

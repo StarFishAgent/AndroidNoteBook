@@ -38,11 +38,13 @@ namespace Note
         }
 
         private async void btnNew_Clicked(object sender, EventArgs e) {
-            var picked = await CrossMedia.Current.PickPhotoAsync(new PickMediaOptions
-            {
-                IsCreateDB = true,
-                SaveFolder = FileSystem.AppDataDirectory
-            });
+            //var picked = await CrossMedia.Current.PickPhotoAsync(new PickMediaOptions
+            //{
+            //    IsCreateDB = true,
+            //    SaveFolder = FileSystem.AppDataDirectory
+            //});
+            //SqliteHelper.CreateDb();
+           var dt =  SqliteHelper.ExecuteQuery("select * from noteinfo");
         }
     }
 }

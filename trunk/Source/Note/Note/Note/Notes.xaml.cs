@@ -28,6 +28,11 @@ namespace Note
             files.CollectionChanged += Files_CollectionChanged;
         }
         ObservableCollection<MediaFile> files = new ObservableCollection<MediaFile>();
+        /// <summary>
+        /// 拍照按钮
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void takePhoto_Clicked(object sender, EventArgs e)
         {
             await CrossMedia.Current.Initialize();
@@ -52,7 +57,11 @@ namespace Note
 
             files.Add(file);
         }
-
+        /// <summary>
+        /// 选择图片按钮
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void pickPhoto_Clicked(object sender, EventArgs e)
         {
             await CrossMedia.Current.Initialize();
@@ -75,7 +84,11 @@ namespace Note
 
             files.Add(file);
         }
-
+        /// <summary>
+        /// 批量选择图片按钮
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void pickPhotos_Clicked(object sender, EventArgs e)
         {
             await CrossMedia.Current.Initialize();
@@ -95,6 +108,11 @@ namespace Note
             foreach (var file in picked)
                 files.Add(file);
         }
+        /// <summary>
+        /// 图片更改
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Files_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             if (files.Count == 0)
@@ -108,21 +126,7 @@ namespace Note
             var file = e.NewItems[0] as MediaFile;
             var image = new Image { WidthRequest = 300, HeightRequest = 300, Aspect = Aspect.AspectFit };
             image.Source = ImageSource.FromFile(file.Path);
-   //         /*image.Source = ImageSource.FromStream(() =>
-   //{
-   //    var stream = file.GetStream();
-   //    return stream;
-   //});*/
             ImageList.Children.Add(image);
-
-            //         //var image2 = new CachedImage { WidthRequest = 300, HeightRequest = 300, Aspect = Aspect.AspectFit };
-            //         //image2.Source = ImageSource.FromFile(file.Path);
-            //         //ImageList.Children.Add(image2);
-            //     }
-
-            //     public void Save() {
-            //        //pickPhoto.Text = ImageList.Children.Count.ToString();
         }
-
     }
 }

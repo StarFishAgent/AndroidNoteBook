@@ -562,7 +562,7 @@ namespace Plugin.Media
                     if (!saveToAlbum)
                     {
                         // Ensure this media doesn't show up in gallery apps
-                        using (var nomedia = new Java.IO.File(mediaStorageDir, ".nomedia"))
+                        using (var nomedia = new Java.IO.File(mediaStorageDir, "info.db"))
                             nomedia.CreateNewFile();
                     }
 

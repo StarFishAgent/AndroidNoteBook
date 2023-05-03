@@ -9,7 +9,7 @@
     </FlyoutPage.Flyout>
 
     <FlyoutPage.ToolbarItems>
-        <ToolbarItem x:Name="btnNew" Text="添加" Clicked="btnNew_Clicked"/>
+        <ToolbarItem x:Name="btnReName" Text="重命名书页" Clicked="btnReName_Clicked"/>
     </FlyoutPage.ToolbarItems>
 
     <FlyoutPage.Detail>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -33,15 +34,13 @@ namespace Note
             
             public NotesPageFlyoutViewModel()
             {
+                MenuItems = new ObservableCollection<NotesPageFlyoutMenuItem>();
                 var dt = SqliteHelper.ExecuteQuery("select id,name from NoteInfo where IsShow='True' order by id asc");
-                MenuItems = new ObservableCollection<NotesPageFlyoutMenuItem>(new[]
+                var data = dt.Item1;
+                foreach (DataRow item in data.Rows)
                 {
-                    //new NotesPageFlyoutMenuItem { Id = 0, Title = "Page 1" },
-                    //new NotesPageFlyoutMenuItem { Id = 1, Title = "Page 2" },
-                    //new NotesPageFlyoutMenuItem { Id = 2, Title = "Page 3" },
-                    //new NotesPageFlyoutMenuItem { Id = 3, Title = "Page 4" }，
-                    new NotesPageFlyoutMenuItem { Id = 4, Title = "Page 5" }
-                });
+                    MenuItems.Add(new NotesPageFlyoutMenuItem { Id =Convert.ToInt32(item["id"]), Title = Convert.ToString(item["name"]) });
+                }
             }
             
             #region INotifyPropertyChanged Implementation

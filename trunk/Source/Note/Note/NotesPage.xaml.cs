@@ -38,11 +38,10 @@ namespace Note
             FlyoutPage.ListView.SelectedItem = null;
         }
 
-        private async void btnNew_Clicked(object sender, EventArgs e) {
-            SqliteHelper.CreateDb();
-            SqliteHelper.ExecuteNonQuery(new SqliteHelper.NoteInfo() { name = "hello" });
-           var dt =  SqliteHelper.ExecuteQuery("select * from noteinfo order by id asc");
-           var i =  dt.Item1.Rows.Count;
+        private async void btnReName_Clicked(object sender, EventArgs e)
+        {
+            string result = await DisplayPromptAsync("重命名", "请输入书页名称");
+            MyNoteBook.Title = result;
         }
     }
 }

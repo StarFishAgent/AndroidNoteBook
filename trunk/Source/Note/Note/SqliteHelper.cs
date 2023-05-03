@@ -46,7 +46,6 @@ namespace Note
             var IsSuccess = "";
             try
             {
-                
                 var conn = new SQLiteConnection(StrConn);
                 conn.Query<NoteInfo>($"delete from noteinfo");
                 //var list = new List<object>();

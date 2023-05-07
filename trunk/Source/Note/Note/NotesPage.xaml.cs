@@ -38,10 +38,14 @@ namespace Note
             FlyoutPage.ListView.SelectedItem = null;
         }
 
-        private async void btnReName_Clicked(object sender, EventArgs e)
+
+        private void btnSave_Clicked(object sender, EventArgs e)
         {
-            string result = await DisplayPromptAsync("重命名", "请输入书页名称");
-            MyNoteBook.Title = result;
+            string title = MyNoteBook.Title;
+            var id = MyNoteBook.AutomationId;
+            var Pathlist = MyNoteBook.PathList;
+            var description = MyNoteBook.Description;
+
         }
     }
 }

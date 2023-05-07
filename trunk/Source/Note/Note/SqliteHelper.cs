@@ -22,15 +22,28 @@ namespace Note
             conn.CreateTables<NoteInfo, PicInfo, TextInfo>(CreateFlags.AllImplicit);
             conn.Execute("PRAGMA foreign_keys = ON;");
         }
-        public static (DataTable,string) ExecuteQuery(this string StrSql)
+        public static (DataTable,string) ExecuteQuery(this string StrSql,DBTable dBTable)
         {
             var dt = new DataTable();
             var ErrMsg = "";
             try
             {
                 var conn = new SQLiteConnection(StrConn);
-                var info = conn.Query<NoteInfo>(StrSql);
-                dt = ListToTable(info);
+                if (dBTable == DBTable.NoteInfo)
+                {
+                    var info = conn.Query<NoteInfo>(StrSql);
+                    dt = ListToTable(info);
+                }
+                if (dBTable == DBTable.TextInfo)
+                {
+                    var info = conn.Query<TextInfo>(StrSql);
+                    dt = ListToTable(info);
+                }
+                if (dBTable == DBTable.PicInfo)
+                {
+                    var info = conn.Query<PicInfo>(StrSql);
+                    dt = ListToTable(info);
+                }
             }
             catch (Exception ex)
             {
@@ -39,7 +52,150 @@ namespace Note
             }
             return (dt, ErrMsg);
         }
-        
+
+        /// <summary>
+        /// 取结果的第一行
+        /// </summary>
+        /// <param name="StrSql"></param>
+        /// <param name="dBTable"></param>
+        /// <returns></returns>
+        public static (DataRow, string) ExecuteQueryRow(this string StrSql, DBTable dBTable)
+        {
+            var dt = new DataTable();
+            var ErrMsg = "";
+            try
+            {
+                var conn = new SQLiteConnection(StrConn);
+                if (dBTable == DBTable.NoteInfo)
+                {
+                    var info = conn.Query<NoteInfo>(StrSql);
+                    dt = ListToTable(info);
+                }
+                if (dBTable == DBTable.TextInfo)
+                {
+                    var info = conn.Query<TextInfo>(StrSql);
+                    dt = ListToTable(info);
+                }
+                if (dBTable == DBTable.PicInfo)
+                {
+                    var info = conn.Query<PicInfo>(StrSql);
+                    dt = ListToTable(info);
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrMsg = ex.Message.ToString();
+                dt = new DataTable();
+            }
+            return (dt.Rows[0], ErrMsg);
+        }
+
+        /// <summary>
+        /// 获取结果第一行的id
+        /// </summary>
+        /// <param name="StrSql"></param>
+        /// <param name="dBTable"></param>
+        /// <returns></returns>
+        public static (int, string) ExecuteQueryGetRowID(this string StrSql, DBTable dBTable)
+        {
+            var dt = new DataTable();
+            var ErrMsg = "";
+            try
+            {
+                var conn = new SQLiteConnection(StrConn);
+                if (dBTable == DBTable.NoteInfo)
+                {
+                    var info = conn.Query<NoteInfo>(StrSql);
+                    dt = ListToTable(info);
+                }
+                if (dBTable == DBTable.TextInfo)
+                {
+                    var info = conn.Query<TextInfo>(StrSql);
+                    dt = ListToTable(info);
+                }
+                if (dBTable == DBTable.PicInfo)
+                {
+                    var info = conn.Query<PicInfo>(StrSql);
+                    dt = ListToTable(info);
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrMsg = ex.Message.ToString();
+                dt = new DataTable();
+            }
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                return (Convert.ToInt32(dt.Rows[0]["id"]), ErrMsg);
+
+            }
+            return (0, ErrMsg);
+        }
+
+        /// <summary>
+        /// 取结果的行数
+        /// </summary>
+        /// <param name="StrSql"></param>
+        /// <param name="dBTable"></param>
+        /// <returns></returns>
+        public static (int, string) ExecuteQueryRowCount(this string StrSql, DBTable dBTable)
+        {
+            var dt = new DataTable();
+            var ErrMsg = "";
+            try
+            {
+                var conn = new SQLiteConnection(StrConn);
+                if (dBTable == DBTable.NoteInfo)
+                {
+                    var info = conn.Query<NoteInfo>(StrSql);
+                    dt = ListToTable(info);
+                }
+                if (dBTable == DBTable.TextInfo)
+                {
+                    var info = conn.Query<TextInfo>(StrSql);
+                    dt = ListToTable(info);
+                }
+                if (dBTable == DBTable.PicInfo)
+                {
+                    var info = conn.Query<PicInfo>(StrSql);
+                    dt = ListToTable(info);
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrMsg = ex.Message.ToString();
+                dt = new DataTable();
+            }
+            return (dt.Rows.Count, ErrMsg);
+        }
+
+        /// <summary>
+        /// 修改
+        /// </summary>
+        /// <param name="StrSql"></param>
+        /// <returns></returns>
+        public static (string, string) ExecuteNonQueryUp(this string StrSql)
+        {
+            var ErrMsg = "";
+            var IsSuccess = "";
+            try
+            {
+                var conn = new SQLiteConnection(StrConn);
+                var Result= conn.Execute(StrSql);
+
+                IsSuccess = Result > 0 ? "修改成功" : "修改失败";
+            }
+            catch (Exception ex)
+            {
+                ErrMsg = ex.Message.ToString();
+            }
+            return (IsSuccess, ErrMsg);
+        }
+
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <returns></returns>
         public static (string,string) ExecuteNonQueryDel()
         {
             var ErrMsg = "";
@@ -48,11 +204,6 @@ namespace Note
             {
                 var conn = new SQLiteConnection(StrConn);
                 conn.Query<NoteInfo>($"delete from noteinfo");
-                //var list = new List<object>();
-                //list.Add(Params);
-                //var Result = conn.InsertAll(list);
-
-                //IsSuccess = Result > 0 ? "插入成功" : "插入失败";
             }
             catch (Exception ex)
             {
@@ -60,19 +211,22 @@ namespace Note
             }
             return (IsSuccess, ErrMsg);
         }
+
+        /// <summary>
+        /// 新增
+        /// </summary>
+        /// <param name="Params"></param>
+        /// <returns></returns>
         public static (string, string) ExecuteNonQuery(object Params)
         {
             var ErrMsg = "";
             var IsSuccess = "";
             try
             {
-
                 var conn = new SQLiteConnection(StrConn);
-
                 var list = new List<object>();
                 list.Add(Params);
                 var Result = conn.InsertAll(list);
-
                 IsSuccess = Result > 0 ? "插入成功" : "插入失败";
             }
             catch (Exception ex)
@@ -231,5 +385,11 @@ namespace Note
             public int Noteid { get; set; }
         }
         #endregion
+        
+        public enum DBTable
+        {
+           NoteInfo , PicInfo, TextInfo
+        }
+
     }
 }

@@ -21,8 +21,14 @@ namespace Note
         {
             InitializeComponent();
             FlyoutPage.ListView.ItemSelected += ListView_ItemSelected;
+            
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
             var item = e.SelectedItem as NotesPageFlyoutMenuItem;
@@ -38,14 +44,37 @@ namespace Note
             FlyoutPage.ListView.SelectedItem = null;
         }
 
-
-        private void btnSave_Clicked(object sender, EventArgs e)
+        /// <summary>
+        /// 保存按钮
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private async void btnSave_Clicked(object sender, EventArgs e)
         {
             string title = MyNoteBook.Title;
-            var id = MyNoteBook.AutomationId;
+            var id = Convert.ToInt32(MyNoteBook.AutomationId);
             var Pathlist = MyNoteBook.PathList;
             var description = MyNoteBook.Description;
-
+            if (Pathlist==null && description == "")
+            {
+                await DisplayAlert("Tips", "没有需要保存的内容", "确定");
+            }
+            if (id != 0)//修改
+            {
+                //isExist = SqliteHelper.IsExist("id", id, SqliteHelper.DBTable.NoteInfo).Item1;
+                SqliteHelper.ExecuteQueryEquals(description, id);
+            }
+            else//不存在
+            {
+                SqliteHelper.ExecuteNonQuery(new SqliteHelper.NoteInfo() { name = title });
+                var mid = SqliteHelper.ExecuteQueryGetRowID("select id from NoteInfo order by id desc", SqliteHelper.DBTable.NoteInfo).Item1;
+                SqliteHelper.ExecuteNonQuery(new SqliteHelper.TextInfo() { TextDetil = description ,Noteid=mid});
+                foreach (string path in Pathlist)
+                {
+                    SqliteHelper.ExecuteNonQuery(new SqliteHelper.PicInfo() { PicPath = path, Noteid = mid });
+                }
+            }
+            await DisplayAlert("Tips", "保存成功", "确定");
         }
     }
 }

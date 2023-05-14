@@ -18,11 +18,26 @@ namespace Note
         static string StrConn = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Note.db3");
         public static void CreateDb()
         {
-            var conn = new SQLiteConnection(StrConn, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.FullMutex, true);
-            conn.CreateTables<NoteInfo, PicInfo, TextInfo>(CreateFlags.AllImplicit);
-            conn.Execute("PRAGMA foreign_keys = ON;");
+            if (File.Exists(StrConn))
+            {
+                return;
+            }
+            else
+            {
+                var conn = new SQLiteConnection(StrConn, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.FullMutex, true);
+                conn.CreateTables<NoteInfo, PicInfo, TextInfo>(CreateFlags.AllImplicit);
+                conn.Execute("PRAGMA foreign_keys = ON;");
+            }
+            
         }
-        public static (DataTable,string) ExecuteQuery(this string StrSql,DBTable dBTable)
+        public static void DeleteDb()
+        {
+            if (File.Exists(StrConn))
+                File.Delete(StrConn);
+        }
+
+        #region EQ
+        public static (DataTable, string) ExecuteQuery(this string StrSql, DBTable dBTable)
         {
             var dt = new DataTable();
             var ErrMsg = "";
@@ -133,6 +148,41 @@ namespace Note
         }
 
         /// <summary>
+        /// 对比是否修改文本
+        /// </summary>
+        /// <param name="StrSql"></param>
+        /// <param name="dBTable"></param>
+        /// <returns></returns>
+        public static (bool, string) ExecuteQueryEquals(string Eqstr,int id)
+        {
+            var conn = new SQLiteConnection(StrConn);
+            var dt = new DataTable();
+            var ErrMsg = "";
+            bool Result = false;
+            try
+            {
+                var info = conn.Query<TextInfo>($"select TextDetil from TextInfo where Noteid ={id}");
+                dt = ListToTable(info);
+                if (dt.Rows[0]["TextDetil"].ToString().Equals(Eqstr))
+                {
+                    Result = true;
+                    ErrMsg = "未做更改，无需修改";
+                }
+                else
+                {
+                    ExecuteNonQueryUp($"update TextInfo set TextDetil={Eqstr} where Noteid={id}");
+                    Result = true;
+                    ErrMsg = "修改成功";
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrMsg = ex.Message.ToString();
+            }
+            return (Result, ErrMsg);
+        }
+
+        /// <summary>
         /// 取结果的行数
         /// </summary>
         /// <param name="StrSql"></param>
@@ -170,6 +220,51 @@ namespace Note
         }
 
         /// <summary>
+        /// 取结果的行数
+        /// </summary>
+        /// <param name="StrSql"></param>
+        /// <param name="dBTable"></param>
+        /// <returns></returns>
+        public static (bool, string) IsExist(string StrField, object Value, DBTable dBTable)
+        {
+            var dt = new DataTable();
+            var ErrMsg = "";
+            bool isExist = false;
+            try
+            {
+                var conn = new SQLiteConnection(StrConn);
+                if (dBTable == DBTable.NoteInfo)
+                {
+                    var info = conn.Query<NoteInfo>($"select count() from NoteInfo where {StrField} = {Value}");
+                    dt = ListToTable(info);
+                }
+                if (dBTable == DBTable.TextInfo)
+                {
+                    var info = conn.Query<TextInfo>($"select count() from TextInfo where {StrField} = {Value}");
+                    dt = ListToTable(info);
+                }
+                if (dBTable == DBTable.PicInfo)
+                {
+                    var info = conn.Query<PicInfo>($"select count() from PicInfo where {StrField} = {Value}");
+                    dt = ListToTable(info);
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrMsg = ex.Message.ToString();
+                dt = new DataTable();
+            }
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                isExist = true;
+            }
+
+            return (isExist, ErrMsg);
+        }
+        #endregion
+
+        #region ENQ
+        /// <summary>
         /// 修改
         /// </summary>
         /// <param name="StrSql"></param>
@@ -181,7 +276,7 @@ namespace Note
             try
             {
                 var conn = new SQLiteConnection(StrConn);
-                var Result= conn.Execute(StrSql);
+                var Result = conn.Execute(StrSql);
 
                 IsSuccess = Result > 0 ? "修改成功" : "修改失败";
             }
@@ -196,7 +291,7 @@ namespace Note
         /// 删除
         /// </summary>
         /// <returns></returns>
-        public static (string,string) ExecuteNonQueryDel()
+        public static (string, string) ExecuteNonQueryDel()
         {
             var ErrMsg = "";
             var IsSuccess = "";
@@ -228,6 +323,7 @@ namespace Note
                 list.Add(Params);
                 var Result = conn.InsertAll(list);
                 IsSuccess = Result > 0 ? "插入成功" : "插入失败";
+
             }
             catch (Exception ex)
             {
@@ -235,6 +331,7 @@ namespace Note
             }
             return (IsSuccess, ErrMsg);
         }
+        #endregion
 
         #region 转换
         /// <summary>
@@ -271,7 +368,7 @@ namespace Note
                     {
                         // throw;
                     }
-                    
+
                 }
                 list.Add(entity);
             }
@@ -362,10 +459,10 @@ namespace Note
         {
             //PrimaryKey 主键
             //AutoIncrement自增长
-            [PrimaryKey,AutoIncrement]
+            [PrimaryKey, AutoIncrement]
             public int id { get; set; }
             public string name { get; set; }
-            public bool IsShow { get; set; }=true;
+            public bool IsShow { get; set; } = true;
         }
         public class PicInfo
         {
@@ -385,10 +482,10 @@ namespace Note
             public int Noteid { get; set; }
         }
         #endregion
-        
+
         public enum DBTable
         {
-           NoteInfo , PicInfo, TextInfo
+            NoteInfo, PicInfo, TextInfo
         }
 
     }

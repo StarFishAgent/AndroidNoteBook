@@ -12,7 +12,7 @@ namespace Note
         public App()
         {
             InitializeComponent();
-
+            SqliteHelper.CreateDb();
             MainPage = new NotesPage();
         }
 

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,20 +25,32 @@ namespace Note
         {
             InitializeComponent();
             files.CollectionChanged += Files_CollectionChanged;
-            var id = SqliteHelper.ExecuteQueryGetRowID("select id from NoteInfo order by id desc", SqliteHelper.DBTable.NoteInfo).Item1;
-            if (id!= 0){
-                AutomationId = (id+1).ToString();
+            
+            if (AutomationId == null)
+            {
+                var id = SqliteHelper.ExecuteQueryGetRowID("select id from NoteInfo order by id desc", SqliteHelper.DBTable.NoteInfo).Item1;
+                if (id != 0)
+                {
+                    AutomationId = id.ToString();
+                    LoadFormData(id);
+                }
+                else
+                {
+                    AutomationId = "0";
+                }
             }
             else
             {
-                AutomationId = "0";
+                LoadFormData(Convert.ToInt32(AutomationId));
             }
             txtDescription.Completed += EditorCompleted;
         }
 
+        #region 全局变量
         ObservableCollection<MediaFile> files = new ObservableCollection<MediaFile>();
         public string Description = "";
-        public ArrayList PathList = new ArrayList{ };
+        public ArrayList PathList = new ArrayList { };
+        #endregion
 
         /// <summary>
         /// 拍照按钮
@@ -145,6 +158,26 @@ namespace Note
         }
 
         /// <summary>
+        /// 加载控件数据
+        /// </summary>
+        /// <param name="id"></param>
+        private void LoadFormData(int id)
+        {
+            var dttitle = SqliteHelper.ExecuteQueryRow($"select name from NoteInfo where id = {id}", SqliteHelper.DBTable.NoteInfo).Item1;
+            var dtdesc = SqliteHelper.ExecuteQueryRow($"select TextDetil from TextInfo where Noteid = {id}", SqliteHelper.DBTable.TextInfo).Item1;
+            var dtpicpath = SqliteHelper.ExecuteQuery($"select PicPath from PicInfo where Noteid = {id} order by id asc", SqliteHelper.DBTable.PicInfo).Item1;
+            Title = dttitle["name"].ToString();
+            txtDescription.Text = dtdesc["TextDetil"].ToString();
+            foreach (DataRow item in dtpicpath.Rows)
+            {
+                var path = item["PicPath"].ToString();
+                var image = new Image { WidthRequest = 300, HeightRequest = 300, Aspect = Aspect.AspectFit };
+                image.Source = ImageSource.FromFile(path);
+                ImageList.Children.Add(image);
+            }
+        }
+
+        /// <summary>
         /// 清除所有图片
         /// </summary>
         /// <param name="sender"></param>
@@ -185,6 +218,11 @@ namespace Note
             }
         }
 
+        /// <summary>
+        /// 描述文本框输入完成事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void EditorCompleted(object sender, EventArgs e)
         {
             Description = txtDescription.Text.Trim(); 

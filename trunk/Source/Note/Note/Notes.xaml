@@ -2,8 +2,7 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Note.Notes"
-             Title="新的书页"
-             x:Uid="">
+             Title="空白书页">
     <ContentPage.Content>
         <StackLayout Spacing="10" Padding="10">
             <StackLayout Orientation="Horizontal" Spacing="30" Padding="10">
@@ -16,18 +15,8 @@
                 <Button x:Name="btnReTitle" Text="重命名标题" Clicked="btnReTitle_Clicked"/>
                 <Button x:Name="btnClearLast" Text="删除最后一张" Clicked="btnClearLast_Clicked"/>
             </StackLayout>
-            <ScrollView>
-                <StackLayout >
-                    <Editor x:Name="txtDescription" Placeholder="请输入用于描述的内容" MaxLength="20000" AutoSize="TextChanges">
-                        <Editor.FontFamily>
-                            <OnPlatform x:TypeArguments="x:String">
-                                <On Platform="iOS" Value="Arial" />
-                                <On Platform="Android" Value="sans-serif-light" />
-                                <On Platform="UWP" Value="Segoe UI" />
-                            </OnPlatform>
-                        </Editor.FontFamily>
-                    </Editor>
-                </StackLayout>
+            <ScrollView  HeightRequest="200">
+                <Editor x:Name="txtDescription" Placeholder="请输入用于描述的内容" MaxLength="20000" AutoSize="TextChanges"/>
             </ScrollView>
             <ScrollView>
                 <StackLayout x:Name="ImageList">

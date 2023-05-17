@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FFImageLoading.Forms;
+using FFImageLoading.Helpers.Exif;
+
 using Plugin.Media;
 using Plugin.Media.Abstractions;
 using Xamarin.Essentials;
@@ -25,10 +27,9 @@ namespace Note
         {
             InitializeComponent();
             files.CollectionChanged += Files_CollectionChanged;
-            
-            if (AutomationId == null)
+            if (AutomationId == null)//是否为null，或是否初次启动程序
             {
-                var id = SqliteHelper.ExecuteQueryGetRowID("select id from NoteInfo order by id desc", SqliteHelper.DBTable.NoteInfo).Item1;
+                var id = SqliteHelper.ExecuteQueryGetRowID("select id from NoteInfo order by id desc", SqliteHelper.DBTable.NoteInfo).Item1;//查询是否存在数据
                 if (id != 0)
                 {
                     AutomationId = id.ToString();
@@ -47,6 +48,7 @@ namespace Note
         }
 
         #region 全局变量
+        public string dbid = "";
         ObservableCollection<MediaFile> files = new ObservableCollection<MediaFile>();
         public string Description = "";
         public ArrayList PathList = new ArrayList { };

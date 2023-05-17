@@ -4,6 +4,7 @@ using Android.Content.PM;
 using Android.Runtime;
 using Android.OS;
 
+
 namespace Note.Droid
 {
 
@@ -15,10 +16,8 @@ namespace Note.Droid
             TabLayoutResource = Resource.Layout.Tabbar;
             ToolbarResource = Resource.Layout.Toolbar;
             base.OnCreate(savedInstanceState);
-
             FFImageLoading.Forms.Platform.CachedImageRenderer.Init(true);
             Xamarin.Forms.Forms.Init(this, savedInstanceState);
-            Android.Glide.Forms.Init(this);
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             global::Xamarin.Forms.Forms.Init(this, savedInstanceState);
             LoadApplication(new App());

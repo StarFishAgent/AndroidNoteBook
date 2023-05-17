@@ -16,7 +16,7 @@ namespace Note
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class NotesPageFlyout : ContentPage
     {
-        public ListView ListView;
+        public ListView ListViewPage;
         public Button button;
         private ToolbarItem _saveAddToolBarItem;
 
@@ -25,25 +25,24 @@ namespace Note
             InitializeComponent();
 
             BindingContext = new NotesPageFlyoutViewModel();
-            ListView = MenuItemsListView;
+            ListViewPage = MenuItemsListView;
         }
 
         class NotesPageFlyoutViewModel : INotifyPropertyChanged
         {
             public ObservableCollection<NotesPageFlyoutMenuItem> MenuItems { get; set; }
-            
+
             public NotesPageFlyoutViewModel()
             {
                 MenuItems = new ObservableCollection<NotesPageFlyoutMenuItem>();
-                var dt = SqliteHelper.ExecuteQuery("select id,name from NoteInfo where IsShow='True' order by id asc",SqliteHelper.DBTable.NoteInfo);
-                var data = dt.Item1;
-                foreach (DataRow item in data.Rows)
+                var dt = SqliteHelper.ExecuteQuery("select id,name from NoteInfo where IsShow='1' order by id asc", SqliteHelper.DBTable.NoteInfo).Item1;
+                foreach (DataRow item in dt.Rows)
                 {
-                    MenuItems.Add(new NotesPageFlyoutMenuItem { Id =Convert.ToInt32(item["id"]), Title = Convert.ToString(item["name"]) });
+                    MenuItems.Add(new NotesPageFlyoutMenuItem { Id = Convert.ToInt64(item["id"]), Title = Convert.ToString(item["name"]) });
                 }
-                MenuItems.Add(new NotesPageFlyoutMenuItem {  Title = "添加新的书页" });
+                MenuItems.Add(new NotesPageFlyoutMenuItem { Title = "添加空白书页" });
             }
-            
+
             #region INotifyPropertyChanged Implementation
             public event PropertyChangedEventHandler PropertyChanged;
             void OnPropertyChanged([CallerMemberName] string propertyName = "")

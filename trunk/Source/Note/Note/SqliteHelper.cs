@@ -483,10 +483,12 @@ namespace Note
         }
         #endregion
 
+        #region 枚举数据库类型
         public enum DBTable
         {
             NoteInfo, PicInfo, TextInfo
         }
+        #endregion
 
     }
 }

@@ -20,8 +20,7 @@ namespace Note
         public NotesPage()
         {
             InitializeComponent();
-            FlyoutPage.ListView.ItemSelected += ListView_ItemSelected;
-            
+            FlyoutPage.ListViewPage.ItemSelected += ListView_ItemSelected;
         }
 
         /// <summary>
@@ -29,19 +28,27 @@ namespace Note
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void ListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+        private async void ListView_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
             var item = e.SelectedItem as NotesPageFlyoutMenuItem;
             if (item == null)
                 return;
 
-            var page = (Page)Activator.CreateInstance(item.TargetType);
-            page.Title = item.Title;
-
+            var page = new Notes();
+            if (item.Title == "添加空白书页")
+            {
+                page.Title = "空白书页";
+            }
+            else
+            {
+                page.Title = item.Title;
+            }
+            page.dbid = item.Id.ToString();
             Detail = new NavigationPage(page);
+
             IsPresented = false;
 
-            FlyoutPage.ListView.SelectedItem = null;
+            FlyoutPage.ListViewPage.SelectedItem = null;
         }
 
         /// <summary>
@@ -52,10 +59,18 @@ namespace Note
         private async void btnSave_Clicked(object sender, EventArgs e)
         {
             string title = MyNoteBook.Title;
-            var id = Convert.ToInt32(MyNoteBook.AutomationId);
+            int id = 0;
+            if (string.IsNullOrWhiteSpace(MyNoteBook.dbid))//如果该id为空字符串
+            {
+                id = Convert.ToInt32(MyNoteBook.AutomationId);//使用AutomationId作为id
+            }
+            else
+            {
+                id = Convert.ToInt32(MyNoteBook.dbid);//使用dbid作为id
+            }
             var Pathlist = MyNoteBook.PathList;
             var description = MyNoteBook.Description;
-            if (Pathlist==null && description == "")
+            if (Pathlist == null && description == "")
             {
                 await DisplayAlert("Tips", "没有需要保存的内容", "确定");
             }
@@ -68,7 +83,7 @@ namespace Note
             {
                 SqliteHelper.ExecuteNonQuery(new SqliteHelper.NoteInfo() { name = title });
                 var mid = SqliteHelper.ExecuteQueryGetRowID("select id from NoteInfo order by id desc", SqliteHelper.DBTable.NoteInfo).Item1;
-                SqliteHelper.ExecuteNonQuery(new SqliteHelper.TextInfo() { TextDetil = description ,Noteid=mid});
+                SqliteHelper.ExecuteNonQuery(new SqliteHelper.TextInfo() { TextDetil = description, Noteid = mid });
                 foreach (string path in Pathlist)
                 {
                     SqliteHelper.ExecuteNonQuery(new SqliteHelper.PicInfo() { PicPath = path, Noteid = mid });

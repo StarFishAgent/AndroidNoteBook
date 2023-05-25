@@ -152,18 +152,32 @@ namespace Note
         /// <summary>
         /// 对比是否修改标题
         /// </summary>
-        /// <param name="StrSql"></param>
-        /// <param name="dBTable"></param>
-        /// <returns></returns>
-        public static (bool, string, string) ExecuteQueryEqualsTitle(string Eqstr, int id)
+        /// <param name="Eqstr">对比文本</param>
+        /// <param name="id">序号</param>
+        /// <returns>
+        /// <para>
+        /// 是否执行成功
+        /// </para>
+        /// <para>
+        /// 是否修改
+        /// </para>
+        /// <para>
+        /// 错误信息
+        /// </para>
+        /// <para>
+        /// 老标题
+        /// </para>
+        /// </returns>
+        public static (bool, bool, string, string) ExecuteQueryEqualsTitle(string Eqstr, int id)
         {
             var conn = new SQLiteConnection(StrConn);
             var dt = new DataTable();
-            var ErrMsg = "";
-            bool Result = false;
+            var ErrMsg = "";//错误信息
+            bool Result = false;//是否修改
+            bool IsSuccess = true;//是否执行成功
             try
             {
-                var info = conn.Query<NoteInfo>($"select name from NoteInfo where id ={id}");
+                var info = conn.Query<NoteInfo>($"select name from NoteInfo where id = '{id}'");
                 dt = ListToTable(info);
                 if (dt.Rows[0]["name"].ToString().Equals(Eqstr))
                 {
@@ -172,7 +186,7 @@ namespace Note
                 }
                 else
                 {
-                    ExecuteNonQueryUp($"update NoteInfo set name={Eqstr} where id={id}");
+                    ExecuteNonQueryUp($"update NoteInfo set name = '{Eqstr}' where id = '{id}'");
                     Result = true;
                     ErrMsg = "修改成功";
                 }
@@ -180,25 +194,37 @@ namespace Note
             catch (Exception ex)
             {
                 ErrMsg = ex.Message.ToString();
+                IsSuccess = false;
             }
-            return (Result, ErrMsg, Convert.ToString(dt.Rows[0]["name"]));
+            return (IsSuccess, Result, ErrMsg, Convert.ToString(dt.Rows[0]["name"]));
         }
 
         /// <summary>
         /// 对比是否修改描述文本
         /// </summary>
-        /// <param name="StrSql"></param>
-        /// <param name="dBTable"></param>
-        /// <returns></returns>
-        public static (bool, string) ExecuteQueryEqualsDetil(string Eqstr, int id)
+        /// <param name="Eqstr">对比文本</param>
+        /// <param name="id">序号</param>
+        /// <returns>
+        /// <para>
+        /// 是否执行成功
+        /// </para>
+        /// <para>
+        /// 是否修改
+        /// </para>
+        /// <para>
+        /// 错误信息
+        /// </para>
+        /// </returns>
+        public static (bool, bool, string) ExecuteQueryEqualsDetil(string Eqstr, int id)
         {
             var conn = new SQLiteConnection(StrConn);
             var dt = new DataTable();
             var ErrMsg = "";
             bool Result = false;
+            bool IsSuccess = true;
             try
             {
-                var info = conn.Query<TextInfo>($"select TextDetil from TextInfo where Noteid ='{id}'");
+                var info = conn.Query<TextInfo>($"select TextDetil from TextInfo where Noteid = '{id}'");
                 dt = ListToTable(info);
                 if (dt.Rows[0]["TextDetil"].ToString().Equals(Eqstr))
                 {
@@ -207,43 +233,55 @@ namespace Note
                 }
                 else
                 {
-                   var Results = ExecuteNonQueryUp($"update TextInfo set TextDetil='{Eqstr}' where Noteid='{id}'");
-                    if (Results.Item1 == "修改成功")
+                    var Results = ExecuteNonQueryUp($"update TextInfo set TextDetil = '{Eqstr}' where Noteid = '{id}'");
+                    if (Results.Item1 == true)
                     {
-                        return (true, Results.Item2);
+                        return (true, true, Results.Item2);
                     }
                     else
                     {
-                        return (false, Results.Item2);
+                        return (true, false, Results.Item2);
                     }
                 }
             }
             catch (Exception ex)
             {
                 ErrMsg = ex.Message.ToString();
+                IsSuccess = false;
             }
-            return (Result, ErrMsg);
+            return (IsSuccess, Result, ErrMsg);
         }
 
         /// <summary>
         /// 对比是否修改图片路径
         /// </summary>
-        /// <param name="StrSql"></param>
-        /// <param name="dBTable"></param>
-        /// <returns></returns>
-        public static (bool, string) ExecuteQueryEqualsPicList(ArrayList EqList, int id)
+        /// <param name="Eqstr">对比文本</param>
+        /// <param name="id">序号</param>
+        /// <returns>
+        /// <para>
+        /// 是否执行成功
+        /// </para>
+        /// <para>
+        /// 是否修改
+        /// </para>
+        /// <para>
+        /// 错误信息
+        /// </para>
+        /// </returns>
+        public static (bool,bool, string) ExecuteQueryEqualsPicList(ArrayList EqList, int id)
         {
             var conn = new SQLiteConnection(StrConn);
             var dt = new DataTable();
             var ErrMsg = "";
+            bool IsSuccess = true;
             bool Result = false;
-            if (EqList == null || EqList.Count<=0)
+            if (EqList == null || EqList.Count <= 0)
             {
-                return (false, "");
+                return (true,false, "");
             }
             try
             {
-                var info = conn.Query<PicInfo>($"select id,PicPath from PicInfo where Noteid ='{id}'");
+                var info = conn.Query<PicInfo>($"select id,PicPath from PicInfo where Noteid = '{id}'");
                 dt = ListToTable(info);
                 if (dt != null && dt.Rows.Count > 0)
                 {
@@ -280,8 +318,9 @@ namespace Note
             catch (Exception ex)
             {
                 ErrMsg = ex.Message.ToString();
+                IsSuccess = false;
             }
-            return (Result, ErrMsg);
+            return (IsSuccess, Result, ErrMsg);
         }
 
         /// <summary>
@@ -337,17 +376,17 @@ namespace Note
                 var conn = new SQLiteConnection(StrConn);
                 if (dBTable == DBTable.NoteInfo)
                 {
-                    var info = conn.Query<NoteInfo>($"select count() from NoteInfo where {StrField} = {Value}");
+                    var info = conn.Query<NoteInfo>($"select count() from NoteInfo where {StrField} = '{Value}'");
                     dt = ListToTable(info);
                 }
                 if (dBTable == DBTable.TextInfo)
                 {
-                    var info = conn.Query<TextInfo>($"select count() from TextInfo where {StrField} = {Value}");
+                    var info = conn.Query<TextInfo>($"select count() from TextInfo where {StrField} = '{Value}'");
                     dt = ListToTable(info);
                 }
                 if (dBTable == DBTable.PicInfo)
                 {
-                    var info = conn.Query<PicInfo>($"select count() from PicInfo where {StrField} = {Value}");
+                    var info = conn.Query<PicInfo>($"select count() from PicInfo where {StrField} = '{Value}'");
                     dt = ListToTable(info);
                 }
             }
@@ -370,22 +409,29 @@ namespace Note
         /// 修改
         /// </summary>
         /// <param name="StrSql"></param>
-        /// <returns></returns>
-        public static (string, string) ExecuteNonQueryUp(this string StrSql)
+        /// <returns>
+        /// <para>
+        /// 是否执行成功
+        /// </para>
+        /// <para>
+        /// 错误信息
+        /// </para>
+        /// </returns>
+        public static (bool, string) ExecuteNonQueryUp(this string StrSql)
         {
             var ErrMsg = "";
-            var IsSuccess = "";
+            bool IsSuccess = true;
             try
             {
                 var conn = new SQLiteConnection(StrConn);
                 var Result = conn.Execute(StrSql);
 
-                IsSuccess = Result > 0 ? "修改成功" : "修改失败";
+                ErrMsg = Result > 0 ? "修改成功" : "修改失败";
             }
             catch (Exception ex)
             {
                 ErrMsg = ex.Message.ToString();
-                IsSuccess = "修改失败";
+                IsSuccess = false;
             }
             return (IsSuccess, ErrMsg);
         }
@@ -393,21 +439,29 @@ namespace Note
         /// <summary>
         /// 删除
         /// </summary>
-        /// <returns></returns>
-        public static (string, string) ExecuteNonQueryDel(this string StrSql)
+        /// <param name="StrSql">Sql语句</param>
+        /// <returns>
+        /// <para>
+        /// 是否执行成功
+        /// </para>
+        /// <para>
+        /// 错误信息
+        /// </para>
+        /// </returns>
+        public static (bool, string) ExecuteNonQueryDel(this string StrSql)
         {
             var ErrMsg = "";
-            var IsSuccess = "";
+            bool IsSuccess = true;
             try
             {
                 var conn = new SQLiteConnection(StrConn);
                 var Result = conn.Execute(StrSql);
-                IsSuccess = Result > 0 ? "删除成功" : "删除失败";
+                ErrMsg = Result > 0 ? "删除成功" : "删除失败";
             }
             catch (Exception ex)
             {
                 ErrMsg = ex.Message.ToString();
-                IsSuccess = "删除失败";
+                IsSuccess = false;
             }
             return (IsSuccess, ErrMsg);
         }
@@ -415,25 +469,32 @@ namespace Note
         /// <summary>
         /// 新增
         /// </summary>
-        /// <param name="Params"></param>
-        /// <returns></returns>
-        public static (string, string) ExecuteNonQuery(object Params)
+        /// <param name="Params">匿名类参数</param>
+        /// <returns>
+        /// <para>
+        /// 是否执行成功
+        /// </para>
+        /// <para>
+        /// 错误信息
+        /// </para>
+        /// </returns>
+        public static (bool, string) ExecuteNonQuery(object Params)
         {
             var ErrMsg = "";
-            var IsSuccess = "";
+            bool IsSuccess = true;
             try
             {
                 var conn = new SQLiteConnection(StrConn);
                 var list = new List<object>();
                 list.Add(Params);
                 var Result = conn.InsertAll(list);
-                IsSuccess = Result > 0 ? "插入成功" : "插入失败";
+                ErrMsg = Result > 0 ? "插入成功" : "插入失败";
 
             }
             catch (Exception ex)
             {
                 ErrMsg = ex.Message.ToString();
-                IsSuccess = "插入失败";
+                IsSuccess = false;
             }
             return (IsSuccess, ErrMsg);
         }

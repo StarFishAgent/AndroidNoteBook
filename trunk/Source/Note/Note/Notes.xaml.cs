@@ -153,21 +153,31 @@ namespace Note
         /// 加载控件数据
         /// </summary>
         /// <param name="id"></param>
-        private void LoadFormData(long id)
+        private async void LoadFormData(long id)
         {
-            var dttitle = SqliteHelper.ExecuteQueryRow($"select name from NoteInfo where id = '{id}'", SqliteHelper.DBTable.NoteInfo).Item1;
-            var dtdesc = SqliteHelper.ExecuteQueryRow($"select TextDetil from TextInfo where Noteid = '{id}'", SqliteHelper.DBTable.TextInfo).Item1;
-            var dtpicpath = SqliteHelper.ExecuteQuery($"select PicPath from PicInfo where Noteid = '{id}' order by id asc", SqliteHelper.DBTable.PicInfo).Item1;
-            Title = dttitle["name"].ToString();
-            txtDescription.Text = dtdesc["TextDetil"].ToString();
-            foreach (DataRow item in dtpicpath.Rows)
+            try
             {
-                var path = item["PicPath"].ToString();
-                var image = new Image { WidthRequest = 300, HeightRequest = 300, Aspect = Aspect.AspectFit };
-                image.Source = ImageSource.FromFile(path);
-                ImageList.Children.Add(image);
+                var dttitle = SqliteHelper.ExecuteQueryRow($"select name from NoteInfo where id = '{id}'", SqliteHelper.DBTable.NoteInfo).Item1;
+                var dtdesc = SqliteHelper.ExecuteQueryRow($"select TextDetil from TextInfo where Noteid = '{id}'", SqliteHelper.DBTable.TextInfo).Item1;
+                var dtpicpath = SqliteHelper.ExecuteQuery($"select PicPath from PicInfo where Noteid = '{id}' order by id asc", SqliteHelper.DBTable.PicInfo).Item1;
+                Title = dttitle["name"].ToString();
+                txtDescription.Text = dtdesc["TextDetil"].ToString();
+                Description = dtdesc["TextDetil"].ToString();
+                foreach (DataRow item in dtpicpath.Rows)
+                {
+                    var path = item["PicPath"].ToString();
+                    var image = new Image { WidthRequest = 300, HeightRequest = 300, Aspect = Aspect.AspectFit };
+                    image.Source = ImageSource.FromFile(path);
+                    ImageList.Children.Add(image);
+                    PathList.Add(path);
+                }
+                AutomationId = Convert.ToString(id);
             }
-            AutomationId = Convert.ToString(id);
+            catch (Exception ex)
+            {
+                await DisplayAlert("提示", ex.ToString(), "OK");
+            }
+            
         }
 
         /// <summary>
@@ -178,6 +188,7 @@ namespace Note
         private void btnClear_Clicked(object sender, EventArgs e)
         {
             ImageList.Children.Clear();
+            PathList.Clear();
         }
 
         /// <summary>
@@ -204,6 +215,8 @@ namespace Note
             if (ImageList.Children.Count - 1 != -1)
             {
                 ImageList.Children.RemoveAt(ImageList.Children.Count - 1);
+                PathList.RemoveAt(PathList.Count - 1);
+
             }
             else
             {
@@ -223,5 +236,7 @@ namespace Note
                 Description = txtDescription.Text.Trim();
             }
         }
+
+        
     }
 }

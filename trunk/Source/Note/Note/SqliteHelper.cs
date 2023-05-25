@@ -9,6 +9,8 @@ using Xamarin.Forms;
 using System.Linq;
 using System.Reflection;
 using SQLiteNetExtensions.Attributes;
+using System.Collections;
+using System.Security.Cryptography;
 
 namespace Note
 {
@@ -28,7 +30,7 @@ namespace Note
                 conn.CreateTables<NoteInfo, PicInfo, TextInfo>(CreateFlags.AllImplicit);
                 conn.Execute("PRAGMA foreign_keys = ON;");
             }
-            
+
         }
         public static void DeleteDb()
         {
@@ -148,12 +150,12 @@ namespace Note
         }
 
         /// <summary>
-        /// 对比是否修改文本
+        /// 对比是否修改标题
         /// </summary>
         /// <param name="StrSql"></param>
         /// <param name="dBTable"></param>
         /// <returns></returns>
-        public static (bool, string) ExecuteQueryEquals(string Eqstr,int id)
+        public static (bool, string, string) ExecuteQueryEqualsTitle(string Eqstr, int id)
         {
             var conn = new SQLiteConnection(StrConn);
             var dt = new DataTable();
@@ -161,7 +163,42 @@ namespace Note
             bool Result = false;
             try
             {
-                var info = conn.Query<TextInfo>($"select TextDetil from TextInfo where Noteid ={id}");
+                var info = conn.Query<NoteInfo>($"select name from NoteInfo where id ={id}");
+                dt = ListToTable(info);
+                if (dt.Rows[0]["name"].ToString().Equals(Eqstr))
+                {
+                    Result = false;
+                    ErrMsg = "未做更改，无需修改";
+                }
+                else
+                {
+                    ExecuteNonQueryUp($"update NoteInfo set name={Eqstr} where id={id}");
+                    Result = true;
+                    ErrMsg = "修改成功";
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrMsg = ex.Message.ToString();
+            }
+            return (Result, ErrMsg, Convert.ToString(dt.Rows[0]["name"]));
+        }
+
+        /// <summary>
+        /// 对比是否修改描述文本
+        /// </summary>
+        /// <param name="StrSql"></param>
+        /// <param name="dBTable"></param>
+        /// <returns></returns>
+        public static (bool, string) ExecuteQueryEqualsDetil(string Eqstr, int id)
+        {
+            var conn = new SQLiteConnection(StrConn);
+            var dt = new DataTable();
+            var ErrMsg = "";
+            bool Result = false;
+            try
+            {
+                var info = conn.Query<TextInfo>($"select TextDetil from TextInfo where Noteid ='{id}'");
                 dt = ListToTable(info);
                 if (dt.Rows[0]["TextDetil"].ToString().Equals(Eqstr))
                 {
@@ -170,10 +207,75 @@ namespace Note
                 }
                 else
                 {
-                    ExecuteNonQueryUp($"update TextInfo set TextDetil={Eqstr} where Noteid={id}");
-                    Result = true;
-                    ErrMsg = "修改成功";
+                   var Results = ExecuteNonQueryUp($"update TextInfo set TextDetil='{Eqstr}' where Noteid='{id}'");
+                    if (Results.Item1 == "修改成功")
+                    {
+                        return (true, Results.Item2);
+                    }
+                    else
+                    {
+                        return (false, Results.Item2);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                ErrMsg = ex.Message.ToString();
+            }
+            return (Result, ErrMsg);
+        }
+
+        /// <summary>
+        /// 对比是否修改图片路径
+        /// </summary>
+        /// <param name="StrSql"></param>
+        /// <param name="dBTable"></param>
+        /// <returns></returns>
+        public static (bool, string) ExecuteQueryEqualsPicList(ArrayList EqList, int id)
+        {
+            var conn = new SQLiteConnection(StrConn);
+            var dt = new DataTable();
+            var ErrMsg = "";
+            bool Result = false;
+            if (EqList == null || EqList.Count<=0)
+            {
+                return (false, "");
+            }
+            try
+            {
+                var info = conn.Query<PicInfo>($"select id,PicPath from PicInfo where Noteid ='{id}'");
+                dt = ListToTable(info);
+                if (dt != null && dt.Rows.Count > 0)
+                {
+                    foreach (string itempath in EqList)
+                    {
+                        bool isinsert = false;
+                        foreach (DataRow dbpath in dt.Rows)
+                        {
+                            if (itempath.Equals(dbpath["PicPath"]))
+                            {
+                                isinsert = false;
+                                dt.Rows.Remove(dbpath);
+                                break;
+                            }
+                            isinsert = true;
+                        }
+                        if (isinsert)
+                        {
+                            ExecuteNonQuery(new PicInfo() { PicPath = itempath, Noteid = id });
+                            Result = true;
+                        }
+                    }
+                    if (dt != null && dt.Rows.Count > 0)
+                    {
+                        foreach (DataRow item in dt.Rows)
+                        {
+                            ExecuteNonQueryDel($"delete from PicInfo where id = '{item["id"]}'");
+                        }
+                        Result = true;
+                    }
+                }
+
             }
             catch (Exception ex)
             {
@@ -283,6 +385,7 @@ namespace Note
             catch (Exception ex)
             {
                 ErrMsg = ex.Message.ToString();
+                IsSuccess = "修改失败";
             }
             return (IsSuccess, ErrMsg);
         }
@@ -291,18 +394,20 @@ namespace Note
         /// 删除
         /// </summary>
         /// <returns></returns>
-        public static (string, string) ExecuteNonQueryDel()
+        public static (string, string) ExecuteNonQueryDel(this string StrSql)
         {
             var ErrMsg = "";
             var IsSuccess = "";
             try
             {
                 var conn = new SQLiteConnection(StrConn);
-                conn.Query<NoteInfo>($"delete from noteinfo");
+                var Result = conn.Execute(StrSql);
+                IsSuccess = Result > 0 ? "删除成功" : "删除失败";
             }
             catch (Exception ex)
             {
                 ErrMsg = ex.Message.ToString();
+                IsSuccess = "删除失败";
             }
             return (IsSuccess, ErrMsg);
         }
@@ -328,6 +433,7 @@ namespace Note
             catch (Exception ex)
             {
                 ErrMsg = ex.Message.ToString();
+                IsSuccess = "插入失败";
             }
             return (IsSuccess, ErrMsg);
         }
@@ -466,7 +572,7 @@ namespace Note
         }
         public class PicInfo
         {
-            [PrimaryKey]
+            [PrimaryKey, AutoIncrement]
             public int id { get; set; }
             public string PicPath { get; set; }
             //ForeignKey外键 typeof(NoteInfo)来自NoteInfo表
@@ -475,7 +581,7 @@ namespace Note
         }
         public class TextInfo
         {
-            [PrimaryKey]
+            [PrimaryKey, AutoIncrement]
             public int id { get; set; }
             public string TextDetil { get; set; }
             [ForeignKey(typeof(NoteInfo))]

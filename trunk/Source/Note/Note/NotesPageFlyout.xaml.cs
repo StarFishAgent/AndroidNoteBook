@@ -27,7 +27,10 @@ namespace Note
             BindingContext = new NotesPageFlyoutViewModel();
             ListViewPage = MenuItemsListView;
         }
-
+        public void reload()
+        {
+            BindingContext = new NotesPageFlyoutViewModel();
+        }
         class NotesPageFlyoutViewModel : INotifyPropertyChanged
         {
             public ObservableCollection<NotesPageFlyoutMenuItem> MenuItems { get; set; }

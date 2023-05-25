@@ -6,11 +6,13 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using FFImageLoading.Forms;
 using FFImageLoading.Helpers.Exif;
 
 using Plugin.Media;
 using Plugin.Media.Abstractions;
+
 using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Internals;
@@ -27,28 +29,16 @@ namespace Note
         {
             InitializeComponent();
             files.CollectionChanged += Files_CollectionChanged;
-            if (AutomationId == null)//是否为null，或是否初次启动程序
-            {
-                var id = SqliteHelper.ExecuteQueryGetRowID("select id from NoteInfo order by id desc", SqliteHelper.DBTable.NoteInfo).Item1;//查询是否存在数据
-                if (id != 0)
-                {
-                    AutomationId = id.ToString();
-                    LoadFormData(id);
-                }
-                else
-                {
-                    AutomationId = "0";
-                }
-            }
-            else
-            {
-                LoadFormData(Convert.ToInt32(AutomationId));
-            }
             txtDescription.Completed += EditorCompleted;
+
+        }
+
+        public Notes(long id) : this()
+        {
+            LoadFormData(id);
         }
 
         #region 全局变量
-        public string dbid = "";
         ObservableCollection<MediaFile> files = new ObservableCollection<MediaFile>();
         public string Description = "";
         public ArrayList PathList = new ArrayList { };
@@ -62,7 +52,7 @@ namespace Note
         private async void takePhoto_Clicked(object sender, EventArgs e)
         {
             await CrossMedia.Current.Initialize();
-            files.Clear();
+            //files.Clear();
             if (!CrossMedia.Current.IsCameraAvailable || !CrossMedia.Current.IsTakePhotoSupported)
             {
                 await DisplayAlert("No Camera", ":( No camera avaialble.", "OK");
@@ -92,7 +82,7 @@ namespace Note
         private async void pickPhoto_Clicked(object sender, EventArgs e)
         {
             await CrossMedia.Current.Initialize();
-            files.Clear();
+            //files.Clear();
             if (!CrossMedia.Current.IsPickPhotoSupported)
             {
                 await DisplayAlert("提示", "图片不支持", "OK");
@@ -120,7 +110,7 @@ namespace Note
         private async void pickPhotos_Clicked(object sender, EventArgs e)
         {
             await CrossMedia.Current.Initialize();
-            files.Clear();
+            //files.Clear();
             if (!CrossMedia.Current.IsPickPhotoSupported)
             {
                 await DisplayAlert("提示", "图片不支持", "OK");
@@ -163,11 +153,11 @@ namespace Note
         /// 加载控件数据
         /// </summary>
         /// <param name="id"></param>
-        private void LoadFormData(int id)
+        private void LoadFormData(long id)
         {
-            var dttitle = SqliteHelper.ExecuteQueryRow($"select name from NoteInfo where id = {id}", SqliteHelper.DBTable.NoteInfo).Item1;
-            var dtdesc = SqliteHelper.ExecuteQueryRow($"select TextDetil from TextInfo where Noteid = {id}", SqliteHelper.DBTable.TextInfo).Item1;
-            var dtpicpath = SqliteHelper.ExecuteQuery($"select PicPath from PicInfo where Noteid = {id} order by id asc", SqliteHelper.DBTable.PicInfo).Item1;
+            var dttitle = SqliteHelper.ExecuteQueryRow($"select name from NoteInfo where id = '{id}'", SqliteHelper.DBTable.NoteInfo).Item1;
+            var dtdesc = SqliteHelper.ExecuteQueryRow($"select TextDetil from TextInfo where Noteid = '{id}'", SqliteHelper.DBTable.TextInfo).Item1;
+            var dtpicpath = SqliteHelper.ExecuteQuery($"select PicPath from PicInfo where Noteid = '{id}' order by id asc", SqliteHelper.DBTable.PicInfo).Item1;
             Title = dttitle["name"].ToString();
             txtDescription.Text = dtdesc["TextDetil"].ToString();
             foreach (DataRow item in dtpicpath.Rows)
@@ -177,6 +167,7 @@ namespace Note
                 image.Source = ImageSource.FromFile(path);
                 ImageList.Children.Add(image);
             }
+            AutomationId = Convert.ToString(id);
         }
 
         /// <summary>
@@ -227,7 +218,10 @@ namespace Note
         /// <param name="e"></param>
         void EditorCompleted(object sender, EventArgs e)
         {
-            Description = txtDescription.Text.Trim(); 
+            if (!string.IsNullOrEmpty(txtDescription.Text)) 
+            {
+                Description = txtDescription.Text.Trim();
+            }
         }
     }
 }

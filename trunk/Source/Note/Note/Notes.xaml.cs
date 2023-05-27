@@ -30,7 +30,6 @@ namespace Note
             InitializeComponent();
             files.CollectionChanged += Files_CollectionChanged;
             txtDescription.Completed += EditorCompleted;
-
         }
 
         public Notes(long id) : this()

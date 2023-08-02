@@ -1,0 +1,3 @@
+# AndroidNoteBook
+基于Xamarin.Forms安卓开发的一个手机笔记本软件
+采用了开源媒体管理包Media和Sqlite-net-pcl包可记录图片和文本信息并储存至数据库
